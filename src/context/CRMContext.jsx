@@ -325,9 +325,38 @@ export const CRMProvider = ({ children }) => {
     ? ticketsQuery.data
     : DEFAULT_TICKETS.filter(t => t.clientId === activeTenantId || activeTenantId === 'all');
 
+  const [localEmployees, setLocalEmployees] = useState([]);
+
+  const createEmployeeMutation = useMutation({
+    mutationFn: (empData) => api.post('/employees', empData),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] }),
+    onError: (err, newEmp) => {
+      console.warn('API create employee failed, using local fallback:', err);
+      const newEntry = {
+        id: `EMP-${String(localEmployees.length + DEFAULT_EMPLOYEES.length + 1).padStart(3, '0')}`,
+        clientId: activeTenantId,
+        name: newEmp.name,
+        email: newEmp.email,
+        designation: newEmp.designation || 'Specialist',
+        roleId: newEmp.roleId || 'role-exec',
+        avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80`
+      };
+      setLocalEmployees(prev => [newEntry, ...prev]);
+    }
+  });
+
+  const updateEmployeeMutation = useMutation({
+    mutationFn: ({ id, designation, roleId }) => api.put(`/employees/${id}`, { designation, roleId, requesterRole: activeRole?.name }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] }),
+    onError: (err, { id, designation, roleId }) => {
+      console.warn('API update employee failed, updating locally:', err);
+      setLocalEmployees(prev => prev.map(e => e.id === id ? { ...e, designation, roleId } : e));
+    }
+  });
+
   const resolvedEmployees = (employeesQuery.data && employeesQuery.data.length > 0)
-    ? employeesQuery.data
-    : DEFAULT_EMPLOYEES.filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
+    ? [...employeesQuery.data, ...localEmployees]
+    : [...DEFAULT_EMPLOYEES, ...localEmployees].filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
 
   const resolvedAuditLogs = (auditLogsQuery.data && auditLogsQuery.data.length > 0)
     ? auditLogsQuery.data
@@ -385,7 +414,7 @@ export const CRMProvider = ({ children }) => {
       isAuthenticated, currentUser, login, signup, logout,
       allClients: allClientsList, activeTenant, setActiveTenantId, onboardNewClient: onboardNewClientMutation.mutateAsync, upgradeTenantPlan: upgradeTenantMutation.mutateAsync,
       roles, activeRole, setActiveRoleId: () => {}, updateRolePermissions: (roleId, permission) => {},
-      employees: resolvedEmployees, createEmployee: () => {}, updateEmployeeRoleAndDesignation: () => {},
+      employees: resolvedEmployees, createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: updateEmployeeMutation.mutateAsync,
       securityConfig, setSecurityConfig,
       auditLogs: resolvedAuditLogs, logAudit: (action, resource, details, severity = 'INFO') => {
         const newLog = {

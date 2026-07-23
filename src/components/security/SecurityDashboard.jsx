@@ -18,10 +18,30 @@ import {
 } from 'lucide-react';
 
 const SecurityDashboard = () => {
-  const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, updateEmployeeRoleAndDesignation } = useCRM();
+  const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation } = useCRM();
   const [activeSubTab, setActiveSubTab] = useState('audit'); // 'audit' | 'policies' | 'rbac' | 'employees'
   const [logFilterSeverity, setLogFilterSeverity] = useState('ALL');
   const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [showAddEmpModal, setShowAddEmpModal] = useState(false);
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec' });
+
+  const handleCreateEmployeeSubmit = async (e) => {
+    e.preventDefault();
+    if (!newEmp.name || !newEmp.email) return;
+
+    try {
+      if (createEmployee) {
+        await createEmployee(newEmp);
+      }
+      if (logAudit) {
+        logAudit('CREATE_EMPLOYEE', newEmp.email, `Created new employee profile: ${newEmp.name} (${newEmp.designation}).`, 'MEDIUM');
+      }
+      setShowAddEmpModal(false);
+      setNewEmp({ name: '', email: '', designation: '', roleId: 'role-exec' });
+    } catch (err) {
+      alert(err.message || 'Failed to create employee');
+    }
+  };
 
   // Check if active user has security admin permission to toggle permissions
   const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
@@ -471,6 +491,15 @@ const SecurityDashboard = () => {
                 }
               </p>
             </div>
+            {isSecurityAdmin && (
+              <button
+                onClick={() => setShowAddEmpModal(true)}
+                className="btn gradient-btn-primary"
+                style={{ padding: '10px 18px', fontSize: '0.8rem' }}
+              >
+                + Add New Employee
+              </button>
+            )}
           </div>
 
           <div className="custom-table-container">
@@ -496,6 +525,74 @@ const SecurityDashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Employee Modal */}
+      {showAddEmpModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ padding: '28px', maxWidth: '480px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '6px' }}>Add New Corporate Employee</h3>
+            <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              Create an employee profile and assign organizational system access permissions.
+            </p>
+
+            <form onSubmit={handleCreateEmployeeSubmit}>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Alex Rivera"
+                  value={newEmp.name}
+                  onChange={(e) => setNewEmp({ ...newEmp, name: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label">Corporate Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. alex.rivera@company.com"
+                  value={newEmp.email}
+                  onChange={(e) => setNewEmp({ ...newEmp, email: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label">Designation / Corporate Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Senior Account Executive"
+                  value={newEmp.designation}
+                  onChange={(e) => setNewEmp({ ...newEmp, designation: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label">System Access Role</label>
+                <select
+                  value={newEmp.roleId}
+                  onChange={(e) => setNewEmp({ ...newEmp, roleId: e.target.value })}
+                  className="form-select"
+                >
+                  {(roles || []).map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button type="button" onClick={() => setShowAddEmpModal(false)} className="btn btn-secondary">Cancel</button>
+                <button type="submit" className="btn gradient-btn-primary">Create Employee Profile</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

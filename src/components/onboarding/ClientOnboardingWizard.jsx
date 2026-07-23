@@ -267,11 +267,25 @@ const ClientOnboardingWizard = () => {
                     <td>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button
-                          onClick={() => setActiveTenantId(client.id)}
-                          className={`btn ${isActive ? 'btn-secondary' : 'gradient-btn-primary'}`}
-                          style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                          disabled={!isActive}
+                          onClick={() => {
+                            if (!isActive) {
+                              alert("Tenant switching is disabled to enforce strict organization data security.");
+                            }
+                          }}
+                          className={`btn ${isActive ? 'btn-secondary' : ''}`}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '0.75rem',
+                            opacity: isActive ? 1 : 0.45,
+                            cursor: isActive ? 'default' : 'not-allowed',
+                            background: isActive ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                            border: isActive ? '1px solid #3b82f6' : '1px solid var(--border-color)',
+                            color: isActive ? '#60a5fa' : 'var(--text-muted)'
+                          }}
+                          title={isActive ? 'Current Organization' : 'Locked to logged-in company context'}
                         >
-                          {isActive ? 'Active' : 'Switch'}
+                          {isActive ? 'Active' : 'Locked'}
                         </button>
                         <button
                           onClick={() => {

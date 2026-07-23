@@ -63,9 +63,12 @@ async function seedDatabase() {
     if (roleCount === 0) {
       console.log('🌱 Seeding roles...');
       await Role.bulkCreate([
-        { id: "role-admin", name: "Super Admin / Org Admin", permissions: ["view_all", "edit_all", "delete_all", "approve_quotes", "export_data", "security_admin"] },
-        { id: "role-mgr", name: "Sales Manager", permissions: ["view_all", "edit_all", "approve_quotes", "export_data"] },
-        { id: "role-exec", name: "Sales Executive", permissions: ["view_leads", "edit_own_leads", "create_quotes"] }
+        { id: "role-admin", name: "Super Admin / Org Admin", permissions: ["super_admin", "view_all", "edit_all", "delete_all", "approve_quotes", "export_data", "security_admin", "manage_salary", "manage_employees", "manage_tickets", "manage_customers", "manage_leads"] },
+        { id: "role-mgr", name: "Sales Manager", permissions: ["view_sales", "edit_sales", "view_leads", "view_contacts", "view_pipeline", "view_products", "view_quotes", "approve_quotes", "view_orders", "view_marketing", "view_documents", "view_reports", "export_data"] },
+        { id: "role-exec", name: "Sales Executive", permissions: ["view_leads", "edit_own_leads", "view_contacts", "view_pipeline", "view_products", "create_quotes", "view_quotes", "log_activities"] },
+        { id: "role-hr", name: "HR / HR Manager", permissions: ["view_hr", "manage_employees", "manage_salary", "manage_attendance", "view_documents", "export_data", "log_activities", "view_reports"] },
+        { id: "role-ops", name: "Operations Head", permissions: ["view_ops", "manage_tickets", "manage_customers", "log_activities", "view_products", "view_contacts", "view_integrations", "view_reports"] },
+        { id: "role-customer", name: "Customer / Portal User", permissions: ["view_tickets", "create_tickets", "view_quotes"] }
       ]);
     }
 

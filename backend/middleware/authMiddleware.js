@@ -20,8 +20,8 @@ async function authenticateToken(req, res, next) {
       // Securely-derived tenant context from decrypted JWT payload claims (preventing BOLA SEC-01)
       let tenantId = decoded.tenantId;
 
-      // Allow Super Admin role to override tenantId with the x-tenant-id header
-      if (decoded.role && decoded.role.startsWith('Super Admin') && req.headers['x-tenant-id']) {
+      // Allow tenantId override ONLY if user is explicitly a system super-admin
+      if (decoded.isSystemAdmin && req.headers['x-tenant-id']) {
         tenantId = req.headers['x-tenant-id'];
       }
 

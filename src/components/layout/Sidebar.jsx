@@ -28,7 +28,6 @@ import {
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard & Analytics', icon: LayoutDashboard, category: 'Main' },
   { id: 'reports', label: 'Reports & Intelligence', icon: BarChart3, category: 'Main' },
-  { id: 'onboarding', label: 'Client Onboarding', icon: Building, category: 'Tenant' },
   { id: 'security', label: 'Security & Audit Vault', icon: ShieldCheck, category: 'Tenant' },
   
   { id: 'leads', label: 'Lead Management', icon: Users, category: 'Sales' },
@@ -42,6 +41,7 @@ const MENU_ITEMS = [
   { id: 'activities', label: 'Activities & Call Logs', icon: Clock, category: 'Operations' },
   { id: 'tasks', label: 'Tasks & Follow-ups', icon: CheckSquare, category: 'Operations' },
   { id: 'support', label: 'Customer Support Desk', icon: Headphones, category: 'Operations' },
+  { id: 'customers', label: 'Customer Accounts & Login', icon: Users, category: 'Operations' },
   
   { id: 'marketing', label: 'Marketing Campaigns', icon: Megaphone, category: 'Growth' },
   { id: 'documents', label: 'Document Vault', icon: FolderLock, category: 'Growth' },
@@ -126,38 +126,47 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>
         {MENU_ITEMS.filter(item => {
           const perms = activeRole?.permissions || [];
-          if (perms.includes('view_all')) return true;
+          const roleId = activeRole?.id || currentUser?.roleId || '';
+          
+          // Super Admin sees 100% of all data and modules entered under all roles
+          if (roleId === 'role-admin' || perms.includes('super_admin')) {
+            return true;
+          }
           
           switch(item.id) {
             case 'dashboard':
-              return perms.length > 0;
-            case 'onboarding':
-              return perms.includes('client_onboard');
+              return true;
+            case 'reports':
+              return perms.includes('view_reports') || perms.includes('export_data');
             case 'security':
-              return perms.includes('security_admin') || perms.includes('view_audit_logs');
+              return perms.includes('security_admin') || perms.includes('manage_employees');
             case 'leads':
-              return perms.includes('view_leads') || perms.includes('edit_own_leads');
-            case 'contacts':
-              return perms.includes('view_customers');
+            case 'ai-assistant':
             case 'pipeline':
-              return perms.includes('view_leads') || perms.includes('edit_all');
+              return perms.includes('view_leads') || perms.includes('view_sales');
+            case 'contacts':
+              return perms.includes('view_contacts') || perms.includes('view_sales') || perms.includes('view_ops');
             case 'products':
-              return perms.includes('view_products');
+              return perms.includes('view_products') || perms.includes('view_sales') || perms.includes('view_ops');
             case 'quotes':
               return perms.includes('view_quotes') || perms.includes('create_quotes');
             case 'orders':
-              return perms.includes('manage_invoices') || perms.includes('view_quotes');
+              return perms.includes('view_orders') || perms.includes('approve_quotes');
             case 'activities':
             case 'tasks':
-              return perms.includes('log_activities') || perms.includes('view_leads');
+              return perms.includes('log_activities') || perms.includes('view_leads') || perms.includes('view_hr') || perms.includes('view_ops');
             case 'support':
-              return perms.includes('view_tickets');
+              return perms.includes('manage_tickets') || perms.includes('view_ops');
+            case 'customers':
+              return perms.includes('manage_customers') || perms.includes('view_ops');
             case 'marketing':
-              return perms.includes('export_data');
+              return perms.includes('view_marketing');
             case 'documents':
-              return perms.includes('view_quotes');
+              return perms.includes('view_documents') || perms.includes('view_sales');
             case 'integrations':
-              return perms.includes('security_admin');
+              return perms.includes('view_integrations');
+            case 'salary':
+              return perms.includes('manage_salary') || perms.includes('view_hr');
             default:
               return false;
           }

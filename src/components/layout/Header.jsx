@@ -8,7 +8,8 @@ import {
   Shield,
   Plus,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 
 const Header = ({ onOpenQuickCreate }) => {
@@ -79,29 +80,14 @@ const Header = ({ onOpenQuickCreate }) => {
       {/* Right Header Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
-        {/* Client Tenant Selector */}
+        {/* Client Tenant Display (Locked to logged-in company) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-primary)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
           <Building style={{ width: '15px', height: '15px', color: '#60a5fa' }} />
           <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)' }}>Tenant:</span>
-          <select
-            value={activeTenant?.id || ''}
-            onChange={(e) => setActiveTenantId(e.target.value)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-primary)',
-              fontWeight: '700',
-              fontSize: '0.8rem',
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            {allClients.map(c => (
-              <option key={c.id} value={c.id} style={{ background: '#1e293b', color: '#fff' }}>
-                {c.name} ({c.plan})
-              </option>
-            ))}
-          </select>
+          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+            {activeTenant?.name} ({activeTenant?.plan || 'Enterprise'})
+          </span>
+          <Lock style={{ width: '12px', height: '12px', color: '#a5b4fc', marginLeft: '4px' }} title="Locked to logged-in organization" />
         </div>
 
 

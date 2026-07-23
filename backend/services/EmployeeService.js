@@ -2,13 +2,15 @@ const EmployeeRepository = require('../repositories/EmployeeRepository');
 const TenantRepository = require('../repositories/TenantRepository');
 const AuditLogRepository = require('../repositories/AuditLogRepository');
 
+const bcrypt = require('bcryptjs');
+
 class EmployeeService {
   async getEmployeesByTenant(tenantId) {
     return EmployeeRepository.findByTenant(tenantId);
   }
 
   async createEmployee(tenant, employeeData) {
-    const { name, email, designation, roleId } = employeeData;
+    const { name, email, designation, roleId, password } = employeeData;
 
     // Enforce seat limit check
     const activeCount = await EmployeeRepository.count({
@@ -19,14 +21,17 @@ class EmployeeService {
       throw new Error(`Seat Limit Reached: Your current plan ('${tenant.plan}') only supports up to ${tenant.maxSeats} seats. Please upgrade to add more employees.`);
     }
 
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = password ? bcrypt.hashSync(password, salt) : bcrypt.hashSync('admin123', salt);
+
     const employee = await EmployeeRepository.create({
       id: `EMP-${Date.now()}`,
       clientId: tenant.id,
       name,
       email,
-      designation,
+      designation: designation || 'Representative',
       roleId: roleId || 'role-exec',
-      passwordHash: 'dummy', // Will be updated on password reset or first login
+      passwordHash,
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
     });
 

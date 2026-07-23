@@ -4,7 +4,6 @@ import AuthPage from './components/auth/AuthPage';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import ExecutiveDashboard from './components/dashboard/ExecutiveDashboard';
-import ClientOnboardingWizard from './components/onboarding/ClientOnboardingWizard';
 import SecurityDashboard from './components/security/SecurityDashboard';
 import LeadList from './components/leads/LeadList';
 import ContactManager from './components/contacts/ContactManager';
@@ -18,6 +17,7 @@ import CampaignManager from './components/marketing/CampaignManager';
 import DocumentVault from './components/documents/DocumentVault';
 import IntegrationHub from './components/integrations/IntegrationHub';
 import CustomerDashboard from './components/customer/CustomerDashboard';
+import CustomerManager from './components/customers/CustomerManager';
 import SalaryModule from './components/salary/SalaryModule';
 import AISalesAssistant from './components/leads/AISalesAssistant';
 import ReportsEngine from './components/reports/ReportsEngine';
@@ -33,7 +33,12 @@ const MainLayout = () => {
   }
 
   // Render customer portal if logged in user is client customer
-  if (currentUser?.role === 'Customer') {
+  if (
+    currentUser?.role === 'Customer' ||
+    currentUser?.role === 'Customer / Portal User' ||
+    currentUser?.roleId === 'role-customer' ||
+    currentUser?.designation?.toLowerCase().includes('customer')
+  ) {
     return <CustomerDashboard />;
   }
 
@@ -44,8 +49,6 @@ const MainLayout = () => {
         return <ExecutiveDashboard />;
       case 'reports':
         return <ReportsEngine />;
-      case 'onboarding':
-        return <ClientOnboardingWizard />;
       case 'security':
         return <SecurityDashboard />;
       case 'leads':
@@ -67,6 +70,8 @@ const MainLayout = () => {
         return <TaskBoard />;
       case 'support':
         return <TicketManager />;
+      case 'customers':
+        return <CustomerManager />;
       case 'marketing':
         return <CampaignManager />;
       case 'documents':
@@ -95,7 +100,7 @@ const MainLayout = () => {
           <div className="modal-content" style={{ padding: '24px', maxWidth: '480px' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '12px' }}>Quick Create Action</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-              Rapidly navigate to create a new lead, quotation, product, or onboard a new client organization.
+              Rapidly navigate to create a new lead, quotation, or product.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
@@ -111,13 +116,6 @@ const MainLayout = () => {
                 style={{ justifyContent: 'flex-start', padding: '12px' }}
               >
                 + Generate Product Quotation
-              </button>
-              <button
-                onClick={() => { setActiveTab('onboarding'); setShowQuickCreate(false); }}
-                className="btn btn-secondary"
-                style={{ justifyContent: 'flex-start', padding: '12px' }}
-              >
-                + Onboard Client Organization
               </button>
             </div>
             <div style={{ marginTop: '20px', textAlign: 'right' }}>

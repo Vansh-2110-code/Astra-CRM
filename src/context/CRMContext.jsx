@@ -25,14 +25,38 @@ export const CRMProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Active Tenant Context
-  const [activeTenantId, setActiveTenantId] = useState(() => {
+  // Active Tenant Context (locked to logged-in user's company context)
+  const [activeTenantIdState, setActiveTenantIdState] = useState(() => {
+    const savedUser = sessionStorage.getItem('astra_user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.tenantId) return parsed.tenantId;
+      } catch (e) {}
+    }
     return sessionStorage.getItem('crm_active_tenant') || null;
   });
+
+  const setActiveTenantId = (id) => {
+    if (currentUser?.tenantId && id !== currentUser.tenantId) {
+      console.warn(`Tenant switching disallowed for logged in user. Locked to ${currentUser.tenantId}`);
+      return;
+    }
+    setActiveTenantIdState(id);
+  };
+
+  const activeTenantId = currentUser?.tenantId || activeTenantIdState;
 
   // Search & Global UI State
   const [globalSearch, setGlobalSearch] = useState('');
   const [notifications, setNotifications] = useState([]);
+
+  // Keep activeTenantId synchronized with currentUser's tenant
+  useEffect(() => {
+    if (currentUser?.tenantId && activeTenantIdState !== currentUser.tenantId) {
+      setActiveTenantIdState(currentUser.tenantId);
+    }
+  }, [currentUser]);
 
   // Sync active tenant id to sessionStorage
   useEffect(() => {
@@ -73,7 +97,7 @@ export const CRMProvider = ({ children }) => {
     currency: 'USD ($)'
   };
 
-  const activeTenant = allClientsList.find(c => c.id === activeTenantId) || allClientsList[0] || fallbackTenant;
+  const activeTenant = allClientsList.find(c => c.id === activeTenantId) || fallbackTenant;
 
   // Queries for Core Resources
   const leadsQuery = useQuery({
@@ -144,15 +168,132 @@ export const CRMProvider = ({ children }) => {
     sessionTimeoutMinutes: 30,
     ipWhitelisting: { enabled: false, allowedIPs: [] }
   });
-  const [tasks, setTasks] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
-  const [documents, setDocuments] = useState([]);
-  const [roles, setRoles] = useState([
-    { id: "role-admin", name: "Super Admin / Org Admin", permissions: ["view_all", "edit_all", "delete_all", "approve_quotes", "export_data", "security_admin"] },
-    { id: "role-mgr", name: "Sales Manager", permissions: ["view_all", "edit_all", "approve_quotes", "export_data"] },
-    { id: "role-exec", name: "Sales Executive", permissions: ["view_leads", "edit_own_leads", "create_quotes"] }
+
+  const [tasks, setTasks] = useState([
+    { id: 'tsk-101', title: 'Schedule product demo with BioGenetics CTO', type: 'Call', dueDate: '2026-07-25', priority: 'High', assignedTo: 'Sarah Jenkins', relatedEntity: 'BioGenetics Lab Solutions', status: 'Pending' },
+    { id: 'tsk-102', title: 'Follow up on OmniTech hardware quote', type: 'WhatsApp', dueDate: '2026-07-24', priority: 'Medium', assignedTo: 'Marcus Vance', relatedEntity: 'OmniTech Electronics', status: 'Completed' },
+    { id: 'tsk-103', title: 'Send SLA contract proposal to Heavy Machinery', type: 'Meeting', dueDate: '2026-07-26', priority: 'High', assignedTo: 'Klaus Schmidt', relatedEntity: 'Heavy Machinery Group', status: 'Pending' }
   ]);
-  const activeRole = roles.find(r => r.id === (currentUser?.roleId || 'role-admin')) || roles[0];
+
+  const [campaigns, setCampaigns] = useState([
+    {
+      id: 'cmp-101',
+      name: 'Q3 Enterprise Cloud Expansion',
+      channel: 'Email Outreach',
+      status: 'Active',
+      targetAudience: 'VPs & CTOs of Tech Firms',
+      openRatePercent: 42.5,
+      clickRatePercent: 18.3,
+      convertedLeads: 14,
+      estimatedROI: '320%',
+      startDate: '2026-07-01',
+      sentCount: 1250
+    },
+    {
+      id: 'cmp-102',
+      name: 'Hardware Warranty Renewal Blitz',
+      channel: 'WhatsApp Broadcast',
+      status: 'Active',
+      targetAudience: 'Existing B2B Hardware Clients',
+      openRatePercent: 68.2,
+      clickRatePercent: 31.4,
+      convertedLeads: 22,
+      estimatedROI: '480%',
+      startDate: '2026-07-10',
+      sentCount: 840
+    }
+  ]);
+
+  const [documents, setDocuments] = useState([
+    {
+      id: 'doc-101',
+      title: 'Master Enterprise SLA Agreement 2026.pdf',
+      category: 'Contract',
+      fileSize: '2.4 MB',
+      uploadedBy: 'Sarah Jenkins',
+      accessLevel: 'Enterprise Admin',
+      tags: ['SLA', 'Legal', 'Contract']
+    },
+    {
+      id: 'doc-102',
+      title: 'Astra CRM Technical Specs & Security Architecture.pdf',
+      category: 'Spec Manual',
+      fileSize: '5.1 MB',
+      uploadedBy: 'Marcus Vance',
+      accessLevel: 'Public Sales',
+      tags: ['Architecture', 'SOC2', 'Security']
+    }
+  ]);
+
+  const [localIntegrations, setLocalIntegrations] = useState([
+    {
+      id: 'int-101',
+      name: 'WhatsApp Business API',
+      category: 'Messaging & Outreach',
+      details: 'Automated lead notifications and interactive customer support messages via official WhatsApp Cloud API.',
+      connectedAccount: '+1 (555) 019-2831',
+      lastSync: '10 mins ago',
+      status: 'Connected',
+      icon: 'MessageSquare'
+    },
+    {
+      id: 'int-102',
+      name: 'Google Workspace & Gmail Sync',
+      category: 'Email & Calendar',
+      details: 'Bi-directional email log sync and automatic Google Calendar meeting scheduling.',
+      connectedAccount: 'admin@apexcrm.io',
+      lastSync: 'Just now',
+      status: 'Connected',
+      icon: 'Mail'
+    },
+    {
+      id: 'int-103',
+      name: 'Razorpay & Stripe Gateway',
+      category: 'Payment Gateway',
+      details: 'Process instant quote deposits, recurring SaaS subscriptions, and digital invoice payments.',
+      connectedAccount: 'acct_10928371928',
+      lastSync: '1 hour ago',
+      status: 'Configured',
+      icon: 'CreditCard'
+    }
+  ]);
+  const [activeRoleId, setActiveRoleId] = useState(null);
+  const [roles, setRoles] = useState([
+    {
+      id: "role-admin",
+      name: "Super Admin / Org Admin",
+      permissions: ["super_admin", "view_all", "edit_all", "delete_all", "approve_quotes", "export_data", "security_admin", "manage_salary", "manage_employees", "manage_tickets", "manage_customers", "manage_leads"]
+    },
+    {
+      id: "role-mgr",
+      name: "Sales Manager",
+      permissions: ["view_sales", "edit_sales", "view_leads", "view_contacts", "view_pipeline", "view_products", "view_quotes", "approve_quotes", "view_orders", "view_marketing", "view_documents", "view_reports", "export_data"]
+    },
+    {
+      id: "role-exec",
+      name: "Sales Executive",
+      permissions: ["view_leads", "edit_own_leads", "view_contacts", "view_pipeline", "view_products", "create_quotes", "view_quotes", "log_activities"]
+    },
+    {
+      id: "role-hr",
+      name: "HR / HR Manager",
+      permissions: ["view_hr", "manage_employees", "manage_salary", "manage_attendance", "view_documents", "export_data", "log_activities", "view_reports"]
+    },
+    {
+      id: "role-ops",
+      name: "Operations Head",
+      permissions: ["view_ops", "manage_tickets", "manage_customers", "log_activities", "view_products", "view_contacts", "view_integrations", "view_reports"]
+    },
+    {
+      id: "role-customer",
+      name: "Customer / Portal User",
+      permissions: ["view_tickets", "create_tickets", "view_quotes"]
+    }
+  ]);
+
+  const activeRole = roles.find(r => r.id === (activeRoleId || currentUser?.roleId)) || 
+                     roles.find(r => r.name === currentUser?.role) || 
+                     roles[0];
 
   // AUTH ACTIONS
   const login = async (email, password) => {
@@ -266,9 +407,9 @@ export const CRMProvider = ({ children }) => {
     ? productsQuery.data
     : (localProducts || []).filter(p => p.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedIntegrations = Array.isArray(integrationsQuery.data)
+  const resolvedIntegrations = Array.isArray(integrationsQuery.data) && integrationsQuery.data.length > 0
     ? integrationsQuery.data
-    : [];
+    : localIntegrations;
 
   const [localEmployees, setLocalEmployees] = useState([]);
 
@@ -356,7 +497,7 @@ export const CRMProvider = ({ children }) => {
       theme, setTheme,
       isAuthenticated, currentUser, login, signup, logout,
       allClients: allClientsList, activeTenant, setActiveTenantId, onboardNewClient: onboardNewClientMutation.mutateAsync, upgradeTenantPlan: upgradeTenantMutation.mutateAsync,
-      roles, activeRole, setActiveRoleId: () => {}, updateRolePermissions: (roleId, permission) => {},
+      roles, activeRole, setActiveRoleId, updateRolePermissions: (roleId, permission) => {},
       employees: resolvedEmployees, createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: updateEmployeeMutation.mutateAsync,
       securityConfig, setSecurityConfig,
       auditLogs: resolvedAuditLogs, logAudit: (action, resource, details, severity = 'INFO') => {
@@ -389,10 +530,12 @@ export const CRMProvider = ({ children }) => {
       }, convertQuoteToOrder: (quoteId) => {},
       orders: resolvedOrders,
       tickets: resolvedTickets, createTicket: (tData) => {},
-      tasks, addTask: (tData) => setTasks(prev => [...prev, { id: `tsk-${Date.now()}`, ...tData }]), toggleTaskStatus: (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status: t.status === 'Completed' ? 'Pending' : 'Completed' } : t)),
-      campaigns,
-      documents,
-      integrations: resolvedIntegrations, toggleIntegration: () => {},
+      tasks, addTask: (tData) => setTasks(prev => [{ id: `tsk-${Date.now()}`, status: 'Pending', ...tData }, ...prev]), toggleTaskStatus: (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status: t.status === 'Completed' ? 'Pending' : 'Completed' } : t)),
+      campaigns, addCampaign: (cData) => setCampaigns(prev => [{ id: `cmp-${Date.now()}`, openRatePercent: 45.0, clickRatePercent: 20.0, convertedLeads: 5, estimatedROI: '250%', startDate: new Date().toISOString().split('T')[0], sentCount: 500, status: 'Active', ...cData }, ...prev]),
+      documents, addDocument: (dData) => setDocuments(prev => [{ id: `doc-${Date.now()}`, ...dData }, ...prev]),
+      integrations: resolvedIntegrations,
+      addIntegration: (iData) => setLocalIntegrations(prev => [{ id: `int-${Date.now()}`, status: 'Connected', lastSync: 'Just now', icon: 'Boxes', ...iData }, ...prev]),
+      toggleIntegration: (id) => setLocalIntegrations(prev => prev.map(i => i.id === id ? { ...i, status: i.status === 'Connected' ? 'Disconnected' : 'Connected' } : i)),
       globalSearch, setGlobalSearch,
       notifications, setNotifications,
       createRazorpayOrder, verifyRazorpayPayment,

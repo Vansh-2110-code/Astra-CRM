@@ -41,6 +41,11 @@ const TaskBoard = () => {
     setShowAddModal(false);
   };
 
+  const callsCount = (tasks || []).filter(t => t.type === 'Call').length;
+  const meetingsCount = (tasks || []).filter(t => t.type === 'Meeting' || t.type === 'Demo').length;
+  const messagingCount = (tasks || []).filter(t => t.type === 'WhatsApp' || t.type === 'Email' || t.type === 'Message').length;
+  const completedTasks = (tasks || []).filter(t => t.status === 'Completed').length;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
@@ -76,7 +81,7 @@ const TaskBoard = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>CALLS LOGGED</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>142 Calls</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>{callsCount} Calls</div>
           </div>
         </div>
 
@@ -86,7 +91,7 @@ const TaskBoard = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>DEMO MEETINGS</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>38 Held</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>{meetingsCount} Held</div>
           </div>
         </div>
 
@@ -96,7 +101,7 @@ const TaskBoard = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>WHATSAPP MESSAGES</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>89 Sent</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>{messagingCount} Sent</div>
           </div>
         </div>
 
@@ -107,7 +112,7 @@ const TaskBoard = () => {
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>TASKS COMPLETED</div>
             <div style={{ fontSize: '1.2rem', fontWeight: '800' }}>
-              {tasks.filter(t => t.status === 'Completed').length} / {tasks.length}
+              {completedTasks} / {tasks.length}
             </div>
           </div>
         </div>

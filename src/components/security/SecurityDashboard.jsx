@@ -19,7 +19,9 @@ import {
 
 const SecurityDashboard = () => {
   const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation } = useCRM();
-  const [activeSubTab, setActiveSubTab] = useState('audit'); // 'audit' | 'policies' | 'rbac' | 'employees'
+  // Check if active user has security admin permission to toggle permissions
+  const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
+  const [activeSubTab, setActiveSubTab] = useState(isSecurityAdmin ? 'audit' : 'employees');
   const [logFilterSeverity, setLogFilterSeverity] = useState('ALL');
   const [logSearchQuery, setLogSearchQuery] = useState('');
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
@@ -42,9 +44,6 @@ const SecurityDashboard = () => {
       alert(err.message || 'Failed to create employee');
     }
   };
-
-  // Check if active user has security admin permission to toggle permissions
-  const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
 
   // Toggle Security Policy Flags
   const toggle2FA = () => {

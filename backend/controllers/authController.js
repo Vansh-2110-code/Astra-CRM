@@ -4,7 +4,8 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await AuthService.login(email, password);
-    res.json(result);
+    // Expose token both as 'token' (frontend key) and 'accessToken' (RFC naming)
+    res.json({ ...result, token: result.accessToken });
   } catch (error) {
     res.status(401).json({ error: error.message });
   }

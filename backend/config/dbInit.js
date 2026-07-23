@@ -6,7 +6,13 @@ async function seedDatabase() {
   try {
     // 1. Sync all schemas
     console.log('🔄 Syncing database tables...');
-    await sequelize.sync({ alter: true });
+    try {
+      await sequelize.sync({ alter: true });
+    } catch (alterErr) {
+      // alter:true can fail on SQLite with FK constraints — fall back to safe mode (create only)
+      console.warn('⚠️  alter sync failed, using safe create-only sync:', alterErr.message);
+      await sequelize.sync({ force: false });
+    }
     console.log('✅ Database schema synced successfully.');
 
     const defaultPasswordHash = bcrypt.hashSync('admin123', 10);

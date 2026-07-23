@@ -12,7 +12,8 @@ exports.getSlips = async (req, res) => {
 
 exports.generateSlip = async (req, res) => {
   try {
-    const slip = await SalaryService.generateSlip(req.body);
+    const clientId = req.body.clientId || req.user?.tenantId || req.tenant?.id || 'client-001';
+    const slip = await SalaryService.generateSlip({ ...req.body, clientId });
     res.status(201).json(slip);
   } catch (error) {
     res.status(500).json({ error: error.message });

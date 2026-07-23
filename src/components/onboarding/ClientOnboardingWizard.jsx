@@ -226,7 +226,7 @@ const ClientOnboardingWizard = () => {
             </thead>
             <tbody>
               {allClients.map(client => {
-                const isActive = client.id === activeTenant.id;
+                const isActive = client.id === activeTenant?.id;
                 return (
                   <tr key={client.id} style={{ background: isActive ? 'rgba(59, 130, 246, 0.08)' : 'transparent' }}>
                     <td>

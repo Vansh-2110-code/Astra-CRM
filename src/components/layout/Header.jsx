@@ -84,7 +84,7 @@ const Header = ({ onOpenQuickCreate }) => {
           <Building style={{ width: '15px', height: '15px', color: '#60a5fa' }} />
           <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)' }}>Tenant:</span>
           <select
-            value={activeTenant.id}
+            value={activeTenant?.id || ''}
             onChange={(e) => setActiveTenantId(e.target.value)}
             style={{
               background: 'transparent',

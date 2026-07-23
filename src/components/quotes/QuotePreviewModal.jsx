@@ -37,19 +37,19 @@ const QuotePreviewModal = ({ quote, onClose }) => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <img 
-              src={quote.customLogoUrl || activeTenant.logo} 
+              src={quote.customLogoUrl || activeTenant?.logo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80'} 
               alt="Logo" 
               style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }} 
             />
             <div>
               <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1e3a8a', letterSpacing: '-0.02em' }}>
-                {activeTenant.name}
+                {activeTenant?.name || 'Company Workspace'}
               </h1>
               <p style={{ fontSize: '0.85rem', color: '#475569', marginTop: '2px' }}>
-                {activeTenant.industry} • Enterprise Sales Division
+                {activeTenant?.industry || 'Enterprise'} • Enterprise Sales Division
               </p>
               <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                Subdomain: {activeTenant.subdomain}.apexcrm.io • Admin: {activeTenant.tenantAdmin}
+                Subdomain: {activeTenant?.subdomain || 'app'}.apexcrm.io • Admin: {activeTenant?.tenantAdmin || 'Admin'}
               </p>
             </div>
           </div>

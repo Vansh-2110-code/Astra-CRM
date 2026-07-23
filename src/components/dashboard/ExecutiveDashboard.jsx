@@ -84,10 +84,10 @@ const ExecutiveDashboard = () => {
             Enterprise Executive Dashboard
           </div>
           <h2 style={{ fontSize: '1.6rem', fontWeight: '800', margin: '4px 0', color: 'var(--text-primary)' }}>
-            Welcome back, {activeTenant.name}
+            Welcome back, {activeTenant?.name || currentUser?.company || 'Workspace'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Active Tenant Workspace: <strong style={{ color: '#34d399' }}>{activeTenant.name}</strong> • Plan: <strong>{activeTenant.plan}</strong> ({activeTenant.seats}/{activeTenant.maxSeats} Seats Used)
+            Active Tenant Workspace: <strong style={{ color: '#34d399' }}>{activeTenant?.name || 'My Organization'}</strong> • Plan: <strong>{activeTenant?.plan || 'Enterprise'}</strong> ({activeTenant?.seats || 1}/{activeTenant?.maxSeats || 50} Seats Used)
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>

@@ -108,16 +108,16 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         gap: '10px'
       }}>
         <img
-          src={activeTenant.logo}
-          alt={activeTenant.name}
+          src={activeTenant?.logo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80'}
+          alt={activeTenant?.name || 'Organization'}
           style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
         />
         <div style={{ overflow: 'hidden', flex: 1 }}>
           <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {activeTenant.name}
+            {activeTenant?.name || 'Organization'}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            Plan: <span style={{ color: '#34d399', fontWeight: '600' }}>{activeTenant.plan}</span>
+            Plan: <span style={{ color: '#34d399', fontWeight: '600' }}>{activeTenant?.plan || 'Enterprise'}</span>
           </div>
         </div>
       </div>

@@ -60,7 +60,20 @@ export const CRMProvider = ({ children }) => {
     ? [...tenantsQuery.data, ...localClients] 
     : localClients;
 
-  const activeTenant = allClientsList.find(c => c.id === activeTenantId) || allClientsList[0] || null;
+  const fallbackTenant = {
+    id: currentUser?.tenantId || activeTenantId || 'client-primary',
+    name: currentUser?.company || currentUser?.name || 'My Organization',
+    subdomain: 'app',
+    logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+    industry: 'Enterprise Operations',
+    plan: 'Enterprise',
+    status: 'Active',
+    maxSeats: 50,
+    seats: 1,
+    currency: 'USD ($)'
+  };
+
+  const activeTenant = allClientsList.find(c => c.id === activeTenantId) || allClientsList[0] || fallbackTenant;
 
   // Queries for Core Resources
   const leadsQuery = useQuery({

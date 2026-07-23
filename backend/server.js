@@ -44,6 +44,13 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
+const http = require('http');
+const { initSocket } = require('./config/socket');
+
+const { initCronJobs } = require('./config/cronWorker');
+
+const server = http.createServer(app);
+
 // Mount Modular API Routes
 app.use('/api', apiRoutes);
 
@@ -60,7 +67,13 @@ async function startServer() {
     // Sync tables and seed initial data in development/test
     await seedDatabase();
 
-    app.listen(port, () => {
+    // Initialize Socket.IO real-time bindings
+    initSocket(server);
+
+    // Start background cron worker routines
+    initCronJobs();
+
+    server.listen(port, () => {
       logger.info(`🚀 Astra CRM Enterprise SaaS Backend running at http://localhost:${port}`);
     });
   } catch (error) {

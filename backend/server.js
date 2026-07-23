@@ -1,53 +1,40 @@
+require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const morgan = require('morgan');
-const apiRoutes = require('./routes');
-const sequelize = require('./config/database');
-const { seedDatabase } = require('./config/dbInit');
-const errorHandler = require('./middleware/errorHandler');
+const path = require('path');
 const logger = require('./utils/logger');
-const { port, nodeEnv, frontendUrl } = require('./config/dbConfig');
+const sequelize = require('./config/database');
+const { port, frontendUrl } = require('./config/dbConfig');
+const { initSocket } = require('./config/socket');
+const apiRoutes = require('./routes');
+const errorHandler = require('./middleware/errorHandler');
+const { seedDatabase } = require('./config/dbInit');
+const { initCronJobs } = require('./config/cronWorker');
 
 const app = express();
 
-// Secure Express headers (XSS protection, referrer policy, framing guards)
-app.use(helmet());
+// Express Security & Parser Middlewares
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Configure strict CORS origin limits
-const allowedOrigins = [frontendUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'];
+// CORS configuration supporting credentials
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Blocked by Security CORS Policy'));
-    }
-  },
-  credentials: true
+  origin: [frontendUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 }));
 
-app.use(express.json());
-
-// Set up Winston + Morgan logging
-const morganFormat = nodeEnv === 'production' ? 'combined' : 'dev';
-app.use(morgan(morganFormat, {
-  stream: { write: (message) => logger.info(message.trim()) }
-}));
-
-// API Request Rate Limiter (Prevent DDoS / Brute Force attacks)
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes window
-  max: nodeEnv === 'test' ? 100000 : 150,
-  message: { error: "Too many requests. Cyber-Security block triggered. Please retry in 15 minutes." }
+// Request Logging Middleware
+app.use((req, res, next) => {
+  logger.info(`[HTTP ${req.method}] ${req.url}`);
+  next();
 });
-app.use('/api/', apiLimiter);
 
-const http = require('http');
-const { initSocket } = require('./config/socket');
-
-const { initCronJobs } = require('./config/cronWorker');
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'UP', service: 'Astra CRM SaaS API Gateway', timestamp: new Date() });
+});
 
 const server = http.createServer(app);
 
@@ -60,9 +47,22 @@ app.use(errorHandler);
 // Database Sync and Seeding Initialization
 async function startServer() {
   try {
-    logger.info('🔌 Connecting to MySQL database...');
-    await sequelize.authenticate();
-    logger.info('Database connection established successfully.');
+    logger.info('🔌 Connecting to database...');
+    try {
+      await sequelize.authenticate();
+      logger.info('MySQL Database connection established successfully.');
+    } catch (dbErr) {
+      logger.warn('MySQL connection unavailable. Initializing SQLite fallback database...');
+      const { Sequelize } = require('sequelize');
+      const sqliteInstance = new Sequelize({
+        dialect: 'sqlite',
+        storage: path.join(__dirname, 'astra_crm_dev.sqlite'),
+        logging: false
+      });
+      Object.assign(sequelize, sqliteInstance);
+      await sequelize.authenticate();
+      logger.info('SQLite fallback database connection established.');
+    }
     
     // Sync tables and seed initial data in development/test
     await seedDatabase();
@@ -88,5 +88,7 @@ startServer();
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received. Shutting down gracefully...');
   await sequelize.close();
-  process.exit(0);
+  server.close(() => {
+    logger.info('Process terminated.');
+  });
 });

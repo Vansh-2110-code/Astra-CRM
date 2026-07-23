@@ -24,31 +24,39 @@ const SecurityDashboard = () => {
   const [logSearchQuery, setLogSearchQuery] = useState('');
 
   // Check if active user has security admin permission to toggle permissions
-  const isSecurityAdmin = activeRole.permissions.includes('security_admin') || activeRole.id === 'role-admin';
+  const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
 
   // Toggle Security Policy Flags
   const toggle2FA = () => {
-    const nextVal = !securityConfig.twoFactorRequired;
+    const nextVal = !(securityConfig?.twoFactorRequired || false);
     setSecurityConfig(prev => ({ ...prev, twoFactorRequired: nextVal }));
-    logAudit('UPDATE_SECURITY_POLICY', '2FA Requirement', `Toggled global 2FA requirement to ${nextVal ? 'ENFORCED' : 'OPTIONAL'}.`, 'HIGH');
+    if (logAudit) logAudit('UPDATE_SECURITY_POLICY', '2FA Requirement', `Toggled global 2FA requirement to ${nextVal ? 'ENFORCED' : 'OPTIONAL'}.`, 'HIGH');
   };
 
   const toggleIPWhitelist = () => {
-    const nextVal = !securityConfig.ipWhitelisting.enabled;
+    const nextVal = !(securityConfig?.ipWhitelisting?.enabled || false);
     setSecurityConfig(prev => ({
       ...prev,
-      ipWhitelisting: { ...prev.ipWhitelisting, enabled: nextVal }
+      ipWhitelisting: { ...(prev?.ipWhitelisting || {}), enabled: nextVal }
     }));
-    logAudit('UPDATE_SECURITY_POLICY', 'IP Whitelisting', `Toggled IP Whitelisting protection to ${nextVal ? 'ENABLED' : 'DISABLED'}.`, 'HIGH');
+    if (logAudit) logAudit('UPDATE_SECURITY_POLICY', 'IP Whitelisting', `Toggled IP Whitelisting protection to ${nextVal ? 'ENABLED' : 'DISABLED'}.`, 'HIGH');
   };
 
-  // Filtered Audit Logs
-  const filteredLogs = auditLogs.filter(log => {
+  // Filtered Audit Logs with defensive null checks
+  const filteredLogs = (auditLogs || []).filter(log => {
+    if (!log) return false;
     const matchesSev = logFilterSeverity === 'ALL' || log.severity === logFilterSeverity;
-    const matchesSearch = log.user.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
-                          log.action.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
-                          log.details.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
-                          log.resource.toLowerCase().includes(logSearchQuery.toLowerCase());
+    const userStr = (log.userEmail || log.user || 'system@astracrm.io').toLowerCase();
+    const actionStr = (log.action || '').toLowerCase();
+    const detailsStr = (log.details || '').toLowerCase();
+    const resourceStr = (log.resource || '').toLowerCase();
+    const query = (logSearchQuery || '').toLowerCase();
+
+    const matchesSearch = !query ||
+                          userStr.includes(query) ||
+                          actionStr.includes(query) ||
+                          detailsStr.includes(query) ||
+                          resourceStr.includes(query);
     return matchesSev && matchesSearch;
   });
 
@@ -243,12 +251,12 @@ const SecurityDashboard = () => {
                   <tr key={log.id}>
                     <td>
                       <code style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        {new Date(log.timestamp).toLocaleString()}
+                        {new Date(log.timestamp || Date.now()).toLocaleString()}
                       </code>
                     </td>
                     <td>
-                      <div style={{ fontWeight: '700' }}>{log.user}</div>
-                      <div style={{ fontSize: '0.725rem', color: '#c084fc' }}>{log.role}</div>
+                      <div style={{ fontWeight: '700' }}>{log.userEmail || log.user || 'system@astracrm.io'}</div>
+                      <div style={{ fontSize: '0.725rem', color: '#c084fc' }}>{log.roleName || log.role || 'Super Admin / Org Admin'}</div>
                     </td>
                     <td>
                       <span style={{ fontWeight: '800', fontSize: '0.78rem', color: '#60a5fa' }}>

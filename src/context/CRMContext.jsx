@@ -168,7 +168,11 @@ export const CRMProvider = ({ children }) => {
     retry: false
   });
 
-  // Stubs for offline features not implemented in API
+  const [securityConfig, setSecurityConfig] = useState({
+    twoFactorRequired: true,
+    sessionTimeoutMinutes: 30,
+    ipWhitelisting: { enabled: true, allowedIPs: ['192.168.1.1/24', '10.0.0.1/16'] }
+  });
   const [tasks, setTasks] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [documents, setDocuments] = useState([]);
@@ -357,8 +361,22 @@ export const CRMProvider = ({ children }) => {
       allClients: allClientsList, activeTenant, setActiveTenantId, onboardNewClient: onboardNewClientMutation.mutateAsync, upgradeTenantPlan: upgradeTenantMutation.mutateAsync,
       roles, activeRole, setActiveRoleId: () => {}, updateRolePermissions: (roleId, permission) => {},
       employees: resolvedEmployees, createEmployee: () => {}, updateEmployeeRoleAndDesignation: () => {},
-      securityConfig: { twoFactorRequired: true, sessionTimeoutMinutes: 30 }, setSecurityConfig: () => {},
-      auditLogs: resolvedAuditLogs, logAudit: () => {},
+      securityConfig, setSecurityConfig,
+      auditLogs: resolvedAuditLogs, logAudit: (action, resource, details, severity = 'INFO') => {
+        const newLog = {
+          id: `log-${Date.now()}`,
+          clientId: activeTenantId,
+          userEmail: currentUser?.email || 'admin@astracrm.io',
+          roleName: activeRole?.name || 'Super Admin / Org Admin',
+          action,
+          resource,
+          ipAddress: '192.168.1.45',
+          severity,
+          details,
+          timestamp: new Date().toISOString()
+        };
+        queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
+      },
       leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: (id, status) => {
         const target = resolvedLeads.find(l => l.id === id);
         if (target) target.status = status;

@@ -16,13 +16,13 @@ const ProductCatalog = () => {
   const { products, addProduct } = useCRM();
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({
-    sku: 'SKU-2026-09',
+    sku: '',
     name: '',
     category: 'Hardware Servers',
-    unitPrice: 15000,
-    taxRatePercent: 8.5,
-    stockCount: 50,
-    variantsStr: 'Base Node, Turbo Dual Node',
+    unitPrice: 0,
+    taxRatePercent: 0,
+    stockCount: 0,
+    variantsStr: '',
     description: ''
   });
 

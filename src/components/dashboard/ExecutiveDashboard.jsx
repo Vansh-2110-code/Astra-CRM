@@ -46,33 +46,34 @@ const ExecutiveDashboard = () => {
   const qualifiedLeads = leads.filter(l => l.status === 'Qualified' || l.status === 'Proposal Sent' || l.status === 'Negotiation').length;
   const conversionRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
 
-  // Monthly Revenue Trend Data
-  const monthlyData = [
-    { month: 'Jan', revenue: 65000, target: 60000 },
-    { month: 'Feb', revenue: 82000, target: 70000 },
-    { month: 'Mar', revenue: 110000, target: 90000 },
-    { month: 'Apr', revenue: 95000, target: 95000 },
-    { month: 'May', revenue: 140000, target: 110000 },
-    { month: 'Jun', revenue: 190000, target: 150000 },
-    { month: 'Jul', revenue: 310000, target: 200000 },
-  ];
+  // Dynamic Monthly Revenue Trend Data from real Won deals
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+  const monthlyData = months.map(m => {
+    const monthDeals = (deals || []).filter(d => 
+      d.stage === 'Won' && 
+      (d.createdDate || d.createdAt) && 
+      new Date(d.createdDate || d.createdAt).toLocaleString('default', { month: 'short' }) === m
+    );
+    const revenue = monthDeals.reduce((sum, d) => sum + (d.dealValue || d.totalValue || 0), 0);
+    return { month: m, revenue, target: 0 };
+  });
 
-  // Sales Funnel Data
+  // Dynamic Sales Funnel Data
   const funnelData = [
-    { stage: 'Leads', count: leads.length, color: '#3b82f6' },
-    { stage: 'Qualified', count: deals.filter(d => d.stage === 'Qualified').length + 2, color: '#06b6d4' },
-    { stage: 'Need Analysis', count: deals.filter(d => d.stage === 'Need Analysis').length + 1, color: '#8b5cf6' },
-    { stage: 'Proposal Sent', count: deals.filter(d => d.stage === 'Proposal Sent').length + 1, color: '#f59e0b' },
+    { stage: 'Leads', count: (leads || []).length, color: '#3b82f6' },
+    { stage: 'Qualified', count: (deals || []).filter(d => d.stage === 'Qualified').length, color: '#06b6d4' },
+    { stage: 'Need Analysis', count: (deals || []).filter(d => d.stage === 'Need Analysis').length, color: '#8b5cf6' },
+    { stage: 'Proposal Sent', count: (deals || []).filter(d => d.stage === 'Proposal Sent').length, color: '#f59e0b' },
     { stage: 'Won', count: totalWonDeals, color: '#10b981' },
   ];
 
-  // Top Products Sales Data
-  const productPieData = [
-    { name: 'OmniHub 4K Rack', value: 150000, color: '#3b82f6' },
-    { name: 'IoT Telemetry Gateway', value: 310000, color: '#10b981' },
-    { name: 'NexusPOS Terminals', value: 88400, color: '#8b5cf6' },
-    { name: 'Sentinel CyberShield', value: 65000, color: '#f59e0b' },
-  ];
+  // Dynamic Products Sales Data
+  const colorsList = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899'];
+  const productPieData = (products || []).map((p, idx) => ({
+    name: p.name,
+    value: p.unitPrice || 0,
+    color: colorsList[idx % colorsList.length]
+  }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -233,26 +234,35 @@ const ExecutiveDashboard = () => {
             Salesperson Leaderboard
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[
-              { name: 'Jessica Wu', role: 'Senior Enterprise AE', revenue: 405000, dealsCount: 4, rank: 1, avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80' },
-              { name: 'Alex Rivera', role: 'Account Executive', revenue: 215000, dealsCount: 3, rank: 2, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&auto=format&fit=crop&q=80' },
-              { name: 'Marcus Vance', role: 'Sales Manager', revenue: 180000, dealsCount: 2, rank: 3, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=80' }
-            ].map(rep => (
-              <div key={rep.name} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: 'var(--bg-input)', borderRadius: '10px' }}>
-                <div style={{ fontWeight: '800', fontSize: '0.9rem', color: rep.rank === 1 ? '#fbbf24' : '#94a3b8', width: '20px' }}>
-                  #{rep.rank}
-                </div>
-                <img src={rep.avatar} alt={rep.name} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{rep.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{rep.role}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: '800', color: '#34d399', fontSize: '0.9rem' }}>${rep.revenue.toLocaleString()}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{rep.dealsCount} Deals Won</div>
-                </div>
+            {(!employees || employees.length === 0) ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                No employees registered in team directory.
               </div>
-            ))}
+            ) : (
+              (employees || []).map((emp, idx) => {
+                const empDeals = (deals || []).filter(d => (d.owner === emp.name || d.assignedTo === emp.name) && d.stage === 'Won');
+                const revenue = empDeals.reduce((sum, d) => sum + (d.dealValue || d.totalValue || 0), 0);
+                const rank = idx + 1;
+                return (
+                  <div key={emp.id || emp.name} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: 'var(--bg-input)', borderRadius: '10px' }}>
+                    <div style={{ fontWeight: '800', fontSize: '0.9rem', color: rank === 1 ? '#fbbf24' : '#94a3b8', width: '20px' }}>
+                      #{rank}
+                    </div>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', color: '#fff', fontSize: '0.85rem' }}>
+                      {emp.name ? emp.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{emp.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{emp.designation || 'Sales Operations'}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: '800', color: '#34d399', fontSize: '0.9rem' }}>${revenue.toLocaleString()}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{empDeals.length} Deals Won</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 

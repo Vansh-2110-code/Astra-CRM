@@ -28,8 +28,8 @@ const ReportsEngine = () => {
   }, {});
 
   // ── Payroll Summary ──────────────────────────────────────────────────────
-  const empPayroll = (employees || []).map((emp, i) => {
-    const base = [65000, 55000, 42000, 60000, 48000][i % 5];
+  const empPayroll = (employees || []).map((emp) => {
+    const base = emp.salary || 0;
     const gross = Math.round(base * 1.60);
     const deductions = Math.round(gross * 0.22);
     const net = gross - deductions;

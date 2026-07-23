@@ -125,7 +125,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       {/* Navigation Links */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>
         {MENU_ITEMS.filter(item => {
-          const perms = activeRole.permissions || [];
+          const perms = activeRole?.permissions || [];
           if (perms.includes('view_all')) return true;
           
           switch(item.id) {

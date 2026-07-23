@@ -27,23 +27,28 @@ import {
 } from 'recharts';
 
 const ExecutiveDashboard = () => {
-  const { activeTenant, leads, deals, quotes, orders, products } = useCRM();
+  const { activeTenant, leads = [], deals = [], quotes = [], orders = [], products = [], employees = [], currentUser } = useCRM();
+
+  const safeDeals = Array.isArray(deals) ? deals : [];
+  const safeLeads = Array.isArray(leads) ? leads : [];
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeEmployees = Array.isArray(employees) ? employees : [];
 
   // Metrics Calculations
-  const totalRevenue = deals
-    .filter(d => d.stage === 'Won')
-    .reduce((sum, d) => sum + d.dealValue, 0);
+  const totalRevenue = safeDeals
+    .filter(d => d && d.stage === 'Won')
+    .reduce((sum, d) => sum + (d.dealValue || d.totalValue || d.value || 0), 0);
 
-  const pipelineValue = deals
-    .filter(d => d.stage !== 'Won' && d.stage !== 'Lost')
-    .reduce((sum, d) => sum + d.dealValue, 0);
+  const pipelineValue = safeDeals
+    .filter(d => d && d.stage !== 'Won' && d.stage !== 'Lost')
+    .reduce((sum, d) => sum + (d.dealValue || d.totalValue || d.value || 0), 0);
 
-  const totalWonDeals = deals.filter(d => d.stage === 'Won').length;
-  const totalClosedDeals = deals.filter(d => d.stage === 'Won' || d.stage === 'Lost').length;
+  const totalWonDeals = safeDeals.filter(d => d && d.stage === 'Won').length;
+  const totalClosedDeals = safeDeals.filter(d => d && (d.stage === 'Won' || d.stage === 'Lost')).length;
   const winRatePercent = totalClosedDeals > 0 ? Math.round((totalWonDeals / totalClosedDeals) * 100) : 0;
 
-  const totalLeads = leads.length;
-  const qualifiedLeads = leads.filter(l => l.status === 'Qualified' || l.status === 'Proposal Sent' || l.status === 'Negotiation').length;
+  const totalLeads = safeLeads.length;
+  const qualifiedLeads = safeLeads.filter(l => l && (l.status === 'Qualified' || l.status === 'Proposal Sent' || l.status === 'Negotiation')).length;
   const conversionRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
 
   // Dynamic Monthly Revenue Trend Data from real Won deals

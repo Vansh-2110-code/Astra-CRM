@@ -242,31 +242,31 @@ export const CRMProvider = ({ children }) => {
   };
 
   // Resolved Resource Collections (Merging API Data & Local User Input)
-  const resolvedLeads = (leadsQuery.data && leadsQuery.data.length > 0)
+  const resolvedLeads = Array.isArray(leadsQuery.data)
     ? leadsQuery.data
-    : localLeads.filter(l => l.clientId === activeTenantId || activeTenantId === 'all');
+    : (localLeads || []).filter(l => l.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedDeals = (dealsQuery.data && dealsQuery.data.length > 0)
+  const resolvedDeals = Array.isArray(dealsQuery.data)
     ? dealsQuery.data
-    : localDeals.filter(d => d.clientId === activeTenantId || activeTenantId === 'all');
+    : (localDeals || []).filter(d => d.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedQuotes = (quotesQuery.data && quotesQuery.data.length > 0)
+  const resolvedQuotes = Array.isArray(quotesQuery.data)
     ? quotesQuery.data
-    : localQuotes.filter(q => q.clientId === activeTenantId || activeTenantId === 'all');
+    : (localQuotes || []).filter(q => q.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedOrders = (ordersQuery.data && ordersQuery.data.length > 0)
+  const resolvedOrders = Array.isArray(ordersQuery.data)
     ? ordersQuery.data
     : [];
 
-  const resolvedTickets = (ticketsQuery.data && ticketsQuery.data.length > 0)
+  const resolvedTickets = Array.isArray(ticketsQuery.data)
     ? ticketsQuery.data
     : [];
 
-  const resolvedProducts = (productsQuery.data && productsQuery.data.length > 0)
+  const resolvedProducts = Array.isArray(productsQuery.data)
     ? productsQuery.data
-    : localProducts.filter(p => p.clientId === activeTenantId || activeTenantId === 'all');
+    : (localProducts || []).filter(p => p.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedIntegrations = (integrationsQuery.data && integrationsQuery.data.length > 0)
+  const resolvedIntegrations = Array.isArray(integrationsQuery.data)
     ? integrationsQuery.data
     : [];
 
@@ -298,11 +298,11 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
-  const resolvedEmployees = (employeesQuery.data && employeesQuery.data.length > 0)
-    ? [...employeesQuery.data, ...localEmployees]
-    : localEmployees.filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
+  const resolvedEmployees = Array.isArray(employeesQuery.data)
+    ? [...employeesQuery.data, ...(localEmployees || [])]
+    : (localEmployees || []).filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedAuditLogs = (auditLogsQuery.data && auditLogsQuery.data.length > 0)
+  const resolvedAuditLogs = Array.isArray(auditLogsQuery.data)
     ? auditLogsQuery.data
     : [];
 

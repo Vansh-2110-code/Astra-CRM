@@ -10,17 +10,17 @@ export const CRMProvider = ({ children }) => {
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem('astra_token');
+    return !!sessionStorage.getItem('astra_token');
   });
 
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('astra_user');
+    const saved = sessionStorage.getItem('astra_user');
     return saved ? JSON.parse(saved) : null;
   });
 
   // Active Tenant Context
   const [activeTenantId, setActiveTenantId] = useState(() => {
-    return localStorage.getItem('crm_active_tenant') || 'client-001';
+    return sessionStorage.getItem('crm_active_tenant') || 'client-001';
   });
 
   // Search & Global UI State
@@ -31,9 +31,9 @@ export const CRMProvider = ({ children }) => {
     { id: 'n3', title: 'Security Alert', message: 'IP Whitelist policy updated by Org Admin.', time: '2h ago', unread: false }
   ]);
 
-  // Sync active tenant id to localstorage
+  // Sync active tenant id to sessionStorage
   useEffect(() => {
-    localStorage.setItem('crm_active_tenant', activeTenantId);
+    sessionStorage.setItem('crm_active_tenant', activeTenantId);
   }, [activeTenantId]);
 
   // Apply HTML attribute for dark/light mode
@@ -123,9 +123,9 @@ export const CRMProvider = ({ children }) => {
       const response = await api.post('/auth/login', { email, password });
       const { token, user } = response.data;
       
-      localStorage.setItem('astra_token', token);
-      localStorage.setItem('astra_user', JSON.stringify(user));
-      localStorage.setItem('crm_active_tenant', user.tenantId || 'client-001');
+      sessionStorage.setItem('astra_token', token);
+      sessionStorage.setItem('astra_user', JSON.stringify(user));
+      sessionStorage.setItem('crm_active_tenant', user.tenantId || 'client-001');
 
       setCurrentUser(user);
       setIsAuthenticated(true);
@@ -142,8 +142,8 @@ export const CRMProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('astra_token');
-    localStorage.removeItem('astra_user');
+    sessionStorage.removeItem('astra_token');
+    sessionStorage.removeItem('astra_user');
     setIsAuthenticated(false);
     setCurrentUser(null);
     queryClient.clear();
@@ -208,19 +208,24 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const upgradeTenantMutation = useMutation({
+    mutationFn: ({ id, plan }) => api.put(`/tenants/${id}/upgrade`, { plan }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tenants'] })
+  });
+
   return (
     <CRMContext.Provider value={{
       theme, setTheme,
       isAuthenticated, currentUser, login, signup, logout,
-      allClients: tenantsQuery.data || [], activeTenant, setActiveTenantId, onboardNewClient: onboardNewClientMutation.mutateAsync,
+      allClients: tenantsQuery.data || [], activeTenant, setActiveTenantId, onboardNewClient: onboardNewClientMutation.mutateAsync, upgradeTenantPlan: upgradeTenantMutation.mutateAsync,
       roles, activeRole, setActiveRoleId: () => {}, updateRolePermissions: (roleId, permission) => {},
       employees: employeesQuery.data || [], createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: (id, roleId, designation) => updateEmployeeMutation.mutateAsync({ id, updateData: { roleId, designation, requesterRole: currentUser?.role } }),
       securityConfig: { twoFactorRequired: true, sessionTimeoutMinutes: 30 }, setSecurityConfig: () => {},
       auditLogs: auditLogsQuery.data || [], logAudit: () => {},
       leads: leadsQuery.data || [], addLead: addLeadMutation.mutateAsync, updateLeadStatus: () => {},
       products: [
-        { id: 'p1', clientId: 'client-001', name: 'Astra CRM Enterprise Edition', sku: 'ASTRA-ENT-001', category: 'Software Licences', price: 799, taxRate: 18, stock: 9999 },
-        { id: 'p2', clientId: 'client-001', name: 'Dedicated Support Package 24/7', sku: 'ASTRA-SUPP-SLA', category: 'Professional Services', price: 299, taxRate: 18, stock: 9999 }
+        { id: 'p1', clientId: 'client-001', name: 'Astra CRM Enterprise Edition', sku: 'ASTRA-ENT-001', category: 'Software Licences', unitPrice: 799, taxRatePercent: 18, stockCount: 9999, description: 'SaaS Enterprise license with full support and modules.' },
+        { id: 'p2', clientId: 'client-001', name: 'Dedicated Support Package 24/7', sku: 'ASTRA-SUPP-SLA', category: 'Professional Services', unitPrice: 299, taxRatePercent: 18, stockCount: 9999, description: '24/7 technical hotline access and dedicated response times.' }
       ], addProduct: () => {},
       deals: dealsQuery.data || [], updateDealStage: () => {}, createDeal: createDealMutation.mutateAsync,
       quotes: quotesQuery.data || [], createQuote: createQuoteMutation.mutateAsync, approveQuote: () => {}, convertQuoteToOrder: (quoteId) => {

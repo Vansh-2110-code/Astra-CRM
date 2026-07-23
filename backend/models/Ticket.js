@@ -30,6 +30,23 @@ const Ticket = sequelize.define('Ticket', {
     type: DataTypes.STRING,
     field: 'customer_name'
   },
+  contactEmail: {
+    type: DataTypes.STRING,
+    field: 'contact_email'
+  },
+  productName: {
+    type: DataTypes.STRING,
+    field: 'product_name'
+  },
+  warrantyStatus: {
+    type: DataTypes.STRING,
+    field: 'warranty_status',
+    defaultValue: 'Active Warranty'
+  },
+  messages: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
   status: {
     type: DataTypes.STRING,
     defaultValue: 'Open',

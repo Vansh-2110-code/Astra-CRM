@@ -17,3 +17,14 @@ exports.createTenant = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.upgradeTenant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { plan } = req.body;
+    const tenant = await TenantService.upgradeTenant(id, plan);
+    res.json(tenant);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -6,7 +6,7 @@ class LeadService {
   }
 
   async createLead(tenantId, leadData) {
-    const { name, company, email, status, score, potentialValue } = leadData;
+    const { name, company, email, phone, source, assignedTo, notes, tags, status, score, potentialValue } = leadData;
 
     // Check duplicate email warning within the same tenant partition
     if (email) {
@@ -20,10 +20,14 @@ class LeadService {
 
     // Auto scoring logic: Base 50
     let computedScore = score || 50;
-    if (potentialValue > 100000) {
+    const val = parseFloat(potentialValue) || 0;
+    if (val > 100000) {
       computedScore += 25;
     }
-    if (email && (email.endsWith('.org') || email.endsWith('.edu'))) {
+    if (source === 'Website Forms' || source === 'Referral') {
+      computedScore += 15;
+    }
+    if (email && (email.endsWith('.org') || email.endsWith('.edu') || email.endsWith('.com'))) {
       computedScore += 10;
     }
 
@@ -33,9 +37,14 @@ class LeadService {
       name,
       company,
       email,
+      phone,
+      source: source || 'Website Forms',
+      assignedTo,
+      notes,
+      tags: tags || [],
       status: status || 'Lead',
-      score: computedScore,
-      potentialValue: potentialValue || 0
+      score: Math.min(100, computedScore),
+      potentialValue: val
     });
 
     return lead;

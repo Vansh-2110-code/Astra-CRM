@@ -25,6 +25,24 @@ const Lead = sequelize.define('Lead', {
   email: {
     type: DataTypes.STRING,
   },
+  phone: {
+    type: DataTypes.STRING,
+  },
+  source: {
+    type: DataTypes.STRING,
+    defaultValue: 'Website Forms'
+  },
+  assignedTo: {
+    type: DataTypes.STRING,
+    field: 'assigned_to'
+  },
+  notes: {
+    type: DataTypes.TEXT,
+  },
+  tags: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
   status: {
     type: DataTypes.STRING,
     defaultValue: 'Lead',

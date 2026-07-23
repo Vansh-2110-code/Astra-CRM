@@ -29,6 +29,16 @@ class TenantService {
 
     return tenant;
   }
+
+  async upgradeTenant(id, plan) {
+    const tenant = await TenantRepository.findOne({ where: { id } });
+    if (!tenant) {
+      throw new Error("Tenant not found.");
+    }
+    const maxSeats = plan === 'Starter' ? 10 : plan === 'Professional' ? 25 : 50;
+    await tenant.update({ plan, maxSeats });
+    return tenant;
+  }
 }
 
 module.exports = new TenantService();

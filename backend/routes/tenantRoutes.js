@@ -5,5 +5,6 @@ const { checkFeature } = require('../middleware/planMiddleware');
 
 router.get('/', checkFeature('tenants'), tenantController.getTenants);
 router.post('/', checkFeature('tenants'), tenantController.createTenant);
+router.put('/:id/upgrade', checkFeature('tenants'), tenantController.upgradeTenant);
 
 module.exports = router;

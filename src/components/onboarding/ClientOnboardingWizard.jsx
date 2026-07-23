@@ -8,13 +8,24 @@ import {
   CheckCircle2,
   Users,
   CreditCard,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 
 const ClientOnboardingWizard = () => {
-  const { allClients, activeTenant, setActiveTenantId, onboardNewClient } = useCRM();
+  const { allClients, activeTenant, setActiveTenantId, onboardNewClient, upgradeTenantPlan } = useCRM();
 
   const [showModal, setShowModal] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState('Professional');
+  
+  // Credit Card Form State
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');
+  const [cardExpiry, setCardExpiry] = useState('12/28');
+  const [cardCvc, setCardCvc] = useState('123');
+
   const [formData, setFormData] = useState({
     name: '',
     subdomain: '',
@@ -56,6 +67,23 @@ const ClientOnboardingWizard = () => {
       tenantAdmin: '',
       complianceFlags: ['GDPR', 'SOC2 Type II']
     });
+  };
+
+  const handleCheckoutSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedClient) return;
+
+    try {
+      await upgradeTenantPlan({
+        id: selectedClient.id,
+        plan: selectedPlan
+      });
+      alert(`Payment Processed Successfully! upgraded ${selectedClient.name} to ${selectedPlan} Plan.`);
+      setShowCheckoutModal(false);
+      setSelectedClient(null);
+    } catch (err) {
+      alert(`Subscription upgrade failed: ${err.message}`);
+    }
   };
 
   return (
@@ -169,7 +197,7 @@ const ClientOnboardingWizard = () => {
                         {client.plan}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {client.seats} / {client.maxSeats} seats used
+                        {client.seats || 1} / {client.maxSeats} seats used
                       </div>
                     </td>
                     <td>
@@ -177,7 +205,7 @@ const ClientOnboardingWizard = () => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                        {client.complianceFlags.map(f => (
+                        {(client.complianceFlags || ['HIPAA']).map(f => (
                           <span key={f} className="badge badge-purple" style={{ fontSize: '0.65rem' }}>{f}</span>
                         ))}
                       </div>
@@ -186,13 +214,27 @@ const ClientOnboardingWizard = () => {
                       <span className="badge badge-emerald">{client.status}</span>
                     </td>
                     <td>
-                      <button
-                        onClick={() => setActiveTenantId(client.id)}
-                        className={`btn ${isActive ? 'btn-secondary' : 'gradient-btn-primary'}`}
-                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                      >
-                        {isActive ? 'Current Tenant' : 'Switch Tenant'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => setActiveTenantId(client.id)}
+                          className={`btn ${isActive ? 'btn-secondary' : 'gradient-btn-primary'}`}
+                          style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                        >
+                          {isActive ? 'Active' : 'Switch'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setSelectedPlan(client.plan);
+                            setCardName(client.tenantAdmin);
+                            setShowCheckoutModal(true);
+                          }}
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.75rem', borderColor: '#34d399', color: '#34d399' }}
+                        >
+                          Upgrade
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -305,6 +347,109 @@ const ClientOnboardingWizard = () => {
                   className="btn gradient-btn-primary"
                 >
                   Provision & Launch Workspace
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stripe Payment Checkout Upgrade Modal */}
+      {showCheckoutModal && selectedClient && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ padding: '28px', maxWidth: '480px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <CreditCard style={{ color: '#3b82f6', width: '24px', height: '24px' }} />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>Stripe Secure Checkout</h3>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              Upgrade subscription tier for <strong>{selectedClient.name}</strong>.
+            </p>
+
+            <form onSubmit={handleCheckoutSubmit}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label className="form-label">Select Plan Upgrade Tier</label>
+                  <select
+                    value={selectedPlan}
+                    onChange={(e) => setSelectedPlan(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="Starter">Starter Plan - $99/mo (10 seats)</option>
+                    <option value="Professional">Professional Plan - $299/mo (25 seats)</option>
+                    <option value="Enterprise">Enterprise Plan - $799/mo (50 seats)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Cardholder Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Sarah Jenkins"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Card Number</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      required
+                      placeholder="4242 4242 4242 4242"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
+                      className="form-input"
+                      style={{ paddingLeft: '36px' }}
+                    />
+                    <Lock style={{ position: 'absolute', left: '12px', top: '12px', width: '16px', height: '16px', color: 'var(--text-muted)' }} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Expiration Date</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="MM/YY"
+                      value={cardExpiry}
+                      onChange={(e) => setCardExpiry(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Security Code (CVC)</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength="4"
+                      placeholder="123"
+                      value={cardCvc}
+                      onChange={(e) => setCardCvc(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCheckoutModal(false);
+                    setSelectedClient(null);
+                  }}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn gradient-btn-primary" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                  Pay & Upgrade Plan
                 </button>
               </div>
             </form>

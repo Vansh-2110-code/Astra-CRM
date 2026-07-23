@@ -13,9 +13,10 @@ const Tenant = sequelize.define('Tenant', {
   subdomain: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   logo: {
-    type: DataTypes.TEXT,
+    type: DataTypes.STRING,
   },
   industry: {
     type: DataTypes.STRING,
@@ -31,10 +32,32 @@ const Tenant = sequelize.define('Tenant', {
   maxSeats: {
     type: DataTypes.INTEGER,
     defaultValue: 10,
+    field: 'max_seats'
   },
   currency: {
     type: DataTypes.STRING,
     defaultValue: 'USD ($)',
+  },
+  // Isolated SMTP configurations per tenant
+  smtpHost: {
+    type: DataTypes.STRING,
+    field: 'smtp_host'
+  },
+  smtpPort: {
+    type: DataTypes.INTEGER,
+    field: 'smtp_port'
+  },
+  smtpUser: {
+    type: DataTypes.STRING,
+    field: 'smtp_user'
+  },
+  smtpPass: {
+    type: DataTypes.STRING,
+    field: 'smtp_pass'
+  },
+  smtpFrom: {
+    type: DataTypes.STRING,
+    field: 'smtp_from'
   }
 }, {
   tableName: 'tenants',

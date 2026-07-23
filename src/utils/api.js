@@ -7,13 +7,13 @@ const api = axios.create({
   }
 });
 
-// Auto-inject Authorization Token and Tenant ID into headers
+// Auto-inject Authorization Token and Tenant ID into headers from sessionStorage (isolated per tab)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('astra_token');
+  const token = sessionStorage.getItem('astra_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const activeTenant = localStorage.getItem('crm_active_tenant');
+  const activeTenant = sessionStorage.getItem('crm_active_tenant');
   if (activeTenant) {
     config.headers['x-tenant-id'] = activeTenant;
   }

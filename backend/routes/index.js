@@ -18,6 +18,7 @@ const auditRoutes = require('./auditRoutes');
 const tenantRoutes = require('./tenantRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const salaryRoutes = require('./salaryRoutes');
+const attendanceRoutes = require('./attendanceRoutes');
 
 // Swagger Documentation Page Route
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -38,5 +39,6 @@ router.use('/audit-logs', authenticateToken, auditRoutes);
 router.use('/tenants', authenticateToken, tenantRoutes);
 router.use('/payments', authenticateToken, paymentRoutes);
 router.use('/salary', authenticateToken, salaryRoutes);
+router.use('/attendance', authenticateToken, attendanceRoutes);
 
 module.exports = router;

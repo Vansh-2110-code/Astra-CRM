@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import AttendanceTracker from './AttendanceTracker';
 import {
   DollarSign, Calendar, Download, Eye, CheckCircle2,
   Users, TrendingUp, FileText, Wallet, BadgeIndianRupee,
-  Clock, PlusCircle, Printer
+  Clock, PlusCircle, Printer, CheckSquare
 } from 'lucide-react';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const SalaryModule = () => {
-  const { employees, activeTenant } = useCRM();
-  const [activeView, setActiveView] = useState('accumulation');
+  const { employees, activeTenant, attendanceRecords } = useCRM();
+  const [activeView, setActiveView] = useState('accumulation'); // 'accumulation' | 'attendance' | 'slips'
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showSlipModal, setShowSlipModal] = useState(null);
   const [salarySlips, setSalarySlips] = useState([]);
@@ -29,7 +30,7 @@ const SalaryModule = () => {
     month: currentMonth, year: currentYear
   });
 
-  // Employee salary configurations with per-day computation
+  // Employee salary configurations with attendance-driven per-day computation
   const employeeSalaryData = useMemo(() => {
     return (employees || []).map((emp, i) => {
       const base = [65000, 55000, 42000, 60000, 48000][i % 5];
@@ -45,18 +46,32 @@ const SalaryModule = () => {
       const totalDeductions = pf + esi + profTax + incomeTax;
       const net = gross - totalDeductions;
       const perDay = Math.round(net / 22);
-      const accumulated = perDay * Math.min(currentDay, 22);
-      const progress = Math.min((currentDay / daysInMonth) * 100, 100);
+
+      // Attendance-driven calculation
+      const empAtt = (attendanceRecords || []).filter(r => r.employeeId === emp.id);
+      let calculatedDaysWorked = Math.min(currentDay, 22);
+
+      if (empAtt.length > 0) {
+        let count = 0;
+        empAtt.forEach(r => {
+          if (r.status === 'Present' || r.status === 'Paid Leave') count += 1;
+          else if (r.status === 'Half-Day') count += 0.5;
+        });
+        calculatedDaysWorked = count;
+      }
+
+      const accumulated = Math.round(perDay * calculatedDaysWorked);
+      const progress = Math.min((calculatedDaysWorked / 22) * 100, 100);
 
       return {
         ...emp,
         basicSalary: base, hra, transport, medical, special,
         grossSalary: gross, pf, esi, profTax, incomeTax,
         totalDeductions, netSalary: net, perDay,
-        accumulated, progress, daysWorked: Math.min(currentDay, 22)
+        accumulated, progress, daysWorked: calculatedDaysWorked
       };
     });
-  }, [employees, currentDay, daysInMonth]);
+  }, [employees, attendanceRecords, currentDay, daysInMonth]);
 
   const totalMonthlyPayroll = employeeSalaryData.reduce((s, e) => s + e.netSalary, 0);
   const totalAccumulated = employeeSalaryData.reduce((s, e) => s + e.accumulated, 0);
@@ -131,6 +146,13 @@ const SalaryModule = () => {
             style={{ padding: '10px 16px', fontSize: '0.8rem' }}
           >
             <TrendingUp style={{ width: '16px', height: '16px' }} /> Per Day Tracker
+          </button>
+          <button
+            onClick={() => setActiveView('attendance')}
+            className={`btn ${activeView === 'attendance' ? 'gradient-btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '10px 16px', fontSize: '0.8rem' }}
+          >
+            <CheckSquare style={{ width: '16px', height: '16px' }} /> Mark Attendance
           </button>
           <button
             onClick={() => setActiveView('slips')}
@@ -252,6 +274,13 @@ const SalaryModule = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Attendance Marking View */}
+      {activeView === 'attendance' && (
+        <div className="glass-panel" style={{ padding: '20px' }}>
+          <AttendanceTracker />
         </div>
       )}
 

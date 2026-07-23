@@ -19,6 +19,8 @@ import DocumentVault from './components/documents/DocumentVault';
 import IntegrationHub from './components/integrations/IntegrationHub';
 import CustomerDashboard from './components/customer/CustomerDashboard';
 import SalaryModule from './components/salary/SalaryModule';
+import AISalesAssistant from './components/leads/AISalesAssistant';
+import ReportsEngine from './components/reports/ReportsEngine';
 
 const MainLayout = () => {
   const { isAuthenticated, currentUser } = useCRM();
@@ -40,12 +42,16 @@ const MainLayout = () => {
     switch (activeTab) {
       case 'dashboard':
         return <ExecutiveDashboard />;
+      case 'reports':
+        return <ReportsEngine />;
       case 'onboarding':
         return <ClientOnboardingWizard />;
       case 'security':
         return <SecurityDashboard />;
       case 'leads':
         return <LeadList />;
+      case 'ai-assistant':
+        return <AISalesAssistant />;
       case 'contacts':
         return <ContactManager />;
       case 'pipeline':

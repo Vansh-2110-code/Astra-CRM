@@ -21,15 +21,18 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
-  Wallet
+  Wallet,
+  BarChart3
 } from 'lucide-react';
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard & Analytics', icon: LayoutDashboard, category: 'Main' },
+  { id: 'reports', label: 'Reports & Intelligence', icon: BarChart3, category: 'Main' },
   { id: 'onboarding', label: 'Client Onboarding', icon: Building, category: 'Tenant' },
   { id: 'security', label: 'Security & Audit Vault', icon: ShieldCheck, category: 'Tenant' },
   
   { id: 'leads', label: 'Lead Management', icon: Users, category: 'Sales' },
+  { id: 'ai-assistant', label: 'AI Sales Assistant', icon: Sparkles, category: 'Sales' },
   { id: 'contacts', label: 'Contacts & Accounts', icon: Building2, category: 'Sales' },
   { id: 'pipeline', label: 'Sales Pipeline Kanban', icon: Kanban, category: 'Sales' },
   { id: 'products', label: 'Product Catalog', icon: Package, category: 'Sales' },

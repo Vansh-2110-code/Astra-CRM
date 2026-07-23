@@ -279,6 +279,31 @@ export const CRMProvider = ({ children }) => {
     }
   };
 
+  const [localAttendance, setLocalAttendance] = useState([
+    { id: 'att-1', clientId: 'client-001', employeeId: 'EMP-001', date: new Date().toISOString().split('T')[0], status: 'Present' },
+    { id: 'att-2', clientId: 'client-001', employeeId: 'EMP-002', date: new Date().toISOString().split('T')[0], status: 'Present' },
+    { id: 'att-3', clientId: 'client-001', employeeId: 'EMP-003', date: new Date().toISOString().split('T')[0], status: 'Half-Day' }
+  ]);
+
+  const batchMarkAttendance = async (date, records) => {
+    try {
+      await api.post('/attendance/batch', { date, records });
+    } catch (err) {
+      console.warn('Backend offline for attendance. Updating local state:', err.message);
+    }
+    setLocalAttendance(prev => {
+      const filtered = prev.filter(r => r.date !== date);
+      const newItems = records.map(rec => ({
+        id: `ATT-${rec.employeeId}-${date}`,
+        clientId: activeTenantId,
+        employeeId: rec.employeeId,
+        date,
+        status: rec.status
+      }));
+      return [...newItems, ...filtered];
+    });
+  };
+
   // Resolved Resource Collections (Merging API Data & Fallbacks)
   const resolvedLeads = (leadsQuery.data && leadsQuery.data.length > 0)
     ? leadsQuery.data
@@ -406,7 +431,8 @@ export const CRMProvider = ({ children }) => {
       ], toggleIntegration: () => {},
       globalSearch, setGlobalSearch,
       notifications, setNotifications,
-      createRazorpayOrder, verifyRazorpayPayment
+      createRazorpayOrder, verifyRazorpayPayment,
+      attendanceRecords: localAttendance, batchMarkAttendance, markAttendance: () => {}
     }}>
       {children}
     </CRMContext.Provider>

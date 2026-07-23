@@ -50,13 +50,13 @@ const OrderInvoiceManager = () => {
               </thead>
               <tbody>
                 {(orders || []).map(order => {
-                  const orderId = order.id || 'ORD-2026-001';
-                  const quoteId = order.quoteId || 'QT-2026-880';
-                  const customer = order.customerName || 'Client Customer';
-                  const date = order.createdDate || order.orderDate || '2026-07-20';
+                  const orderId = order.id || order._id || 'N/A';
+                  const quoteId = order.quoteId || 'N/A';
+                  const customer = order.customerName || 'N/A';
+                  const date = order.createdDate || order.orderDate || '';
                   const total = order.totalValue || order.totalAmount || order.grandTotal || 0;
-                  const status = order.status || order.paymentStatus || 'Processing';
-                  const invoiceNum = order.invoiceNumber || `INV-2026-${orderId.replace(/[^0-9]/g, '') || '101'}`;
+                  const status = order.status || order.paymentStatus || 'Pending';
+                  const invoiceNum = order.invoiceNumber || (order.id ? `INV-${order.id}` : 'N/A');
 
                   return (
                     <tr key={orderId}>

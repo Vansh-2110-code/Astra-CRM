@@ -31,11 +31,11 @@ const KanbanBoard = () => {
     title: '',
     company: '',
     contactName: '',
-    dealValue: 120000,
-    expectedCloseDate: '2026-08-30',
-    owner: 'Alex Rivera',
-    competitors: 'Dell, Cisco',
-    productsInterested: 'OmniHub 4K Server'
+    dealValue: 0,
+    expectedCloseDate: '',
+    owner: '',
+    competitors: '',
+    productsInterested: ''
   });
 
   // Calculate total weighted forecast revenue

@@ -94,21 +94,12 @@ const ClientOnboardingWizard = () => {
       const order = await createRazorpayOrder(price, 'INR');
 
       if (typeof window.Razorpay === 'undefined') {
-        await verifyRazorpayPayment({
-          razorpay_order_id: order.id,
-          razorpay_payment_id: `pay_rzp_mock_${Date.now()}`,
-          razorpay_signature: `sig_rzp_mock_${Date.now()}`,
-          tenantId: selectedClient.id,
-          plan: selectedPlan
-        });
-        alert(`Razorpay Payment Successful! Upgraded ${selectedClient.name} to ${selectedPlan}.`);
-        setShowCheckoutModal(false);
-        setSelectedClient(null);
+        alert('Razorpay SDK is not loaded. Please check your internet connection.');
         return;
       }
 
       const options = {
-        key: 'rzp_test_mockKeyId2026',
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID || '',
         amount: order.amount,
         currency: order.currency,
         name: 'Astra CRM Enterprise',

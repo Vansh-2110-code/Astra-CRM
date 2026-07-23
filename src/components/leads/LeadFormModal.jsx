@@ -10,10 +10,10 @@ const LeadFormModal = ({ onClose }) => {
     email: '',
     phone: '',
     source: 'Website Forms',
-    potentialValue: 100000,
-    assignedTo: 'Alex Rivera',
+    potentialValue: 0,
+    assignedTo: '',
     notes: '',
-    tagsStr: 'Enterprise, High Priority'
+    tagsStr: ''
   });
 
   const handleSubmit = (e) => {
@@ -24,12 +24,12 @@ const LeadFormModal = ({ onClose }) => {
       name: formData.name,
       company: formData.company,
       email: formData.email,
-      phone: formData.phone || '+1 (555) 000-1122',
+      phone: formData.phone || '',
       source: formData.source,
-      potentialValue: parseFloat(formData.potentialValue) || 50000,
+      potentialValue: parseFloat(formData.potentialValue) || 0,
       assignedTo: formData.assignedTo,
-      notes: formData.notes || 'Inbound lead captured via CRM portal.',
-      tags: formData.tagsStr.split(',').map(t => t.trim()).filter(Boolean)
+      notes: formData.notes || '',
+      tags: formData.tagsStr ? formData.tagsStr.split(',').map(t => t.trim()).filter(Boolean) : []
     });
 
     onClose();

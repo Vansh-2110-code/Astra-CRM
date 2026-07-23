@@ -27,17 +27,17 @@ const CustomerDashboard = () => {
   const [priority, setPriority] = useState('Medium');
   const [description, setDescription] = useState('');
 
-  // Filter quotes and tickets belonging to the customer's company (simulated by customer email domain/company name matching)
-  const customerEmailDomain = currentUser.email.split('@')[1];
+  // Filter quotes and tickets belonging to the customer's company
+  const customerEmailDomain = currentUser?.email ? currentUser.email.split('@')[1] : '';
   
   const customerTickets = tickets.filter(t => 
-    t.contactEmail.toLowerCase().includes(customerEmailDomain.toLowerCase()) || 
-    t.customerName.toLowerCase().includes("biogenetics")
+    (t.contactEmail && customerEmailDomain && t.contactEmail.toLowerCase().includes(customerEmailDomain.toLowerCase())) || 
+    (currentUser?.company && t.customerName && t.customerName.toLowerCase().includes(currentUser.company.toLowerCase()))
   );
 
   const customerQuotes = quotes.filter(q => 
-    q.contactEmail.toLowerCase().includes(customerEmailDomain.toLowerCase()) || 
-    q.customerName.toLowerCase().includes("biogenetics")
+    (q.contactEmail && customerEmailDomain && q.contactEmail.toLowerCase().includes(customerEmailDomain.toLowerCase())) || 
+    (currentUser?.company && q.customerName && q.customerName.toLowerCase().includes(currentUser.company.toLowerCase()))
   );
 
   const handleRaiseTicket = (e) => {
@@ -49,10 +49,10 @@ const CustomerDashboard = () => {
       category,
       priority,
       description,
-      customerName: "BioGenetics Lab Solutions",
-      contactPerson: currentUser.name,
-      contactEmail: currentUser.email,
-      phone: "+1 (555) 789-2244"
+      customerName: currentUser?.company || currentUser?.name || 'Customer',
+      contactPerson: currentUser?.name || '',
+      contactEmail: currentUser?.email || '',
+      phone: ''
     });
 
     setSubject('');

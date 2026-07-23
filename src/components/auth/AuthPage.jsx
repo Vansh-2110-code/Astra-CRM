@@ -279,42 +279,7 @@ const AuthPage = () => {
           </div>
         )}
 
-        {/* Quick Demo Credentials Switcher */}
-        <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--border-color)' }}>
-          <div style={{ fontSize: '0.725rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
-            ⚡ QUICK DEMO AUTO-LOGIN
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={() => quickLogin('sarah.jenkins@apexglobal.io', 'Org Admin')}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#a5b4fc', padding: '6px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer' }}
-            >
-              Super Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => quickLogin('marcus.vance@sales.apex.io', 'Sales Manager')}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#34d399', padding: '6px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer' }}
-            >
-              Sales Mgr
-            </button>
-            <button
-              type="button"
-              onClick={() => quickLogin('alex.rivera@sales.apex.io', 'Sales Executive')}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#fbbf24', padding: '6px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer' }}
-            >
-              Sales Exec
-            </button>
-            <button
-              type="button"
-              onClick={() => quickLogin('customer@biogenetics.org', 'Customer')}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#c084fc', padding: '6px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer' }}
-            >
-              Customer
-            </button>
-          </div>
-        </div>
+
 
         {/* Toggle Mode Footer */}
         <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>

@@ -19,10 +19,10 @@ const TaskBoard = () => {
   const [formData, setFormData] = useState({
     title: '',
     type: 'Call',
-    dueDate: '2026-07-25',
-    priority: 'High',
-    assignedTo: 'Alex Rivera',
-    relatedEntity: 'Acme Corporation'
+    dueDate: '',
+    priority: 'Medium',
+    assignedTo: '',
+    relatedEntity: ''
   });
 
   const handleSubmit = (e) => {

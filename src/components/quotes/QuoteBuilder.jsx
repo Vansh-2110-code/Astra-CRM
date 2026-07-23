@@ -21,21 +21,19 @@ const QuoteBuilder = () => {
   const [previewQuote, setPreviewQuote] = useState(null);
 
   // New Quote Form State
-  const [customerName, setCustomerName] = useState('Acme Corporation');
-  const [contactPerson, setContactPerson] = useState('Jonathan Sterling');
-  const [contactEmail, setContactEmail] = useState('j.sterling@acmecorp.com');
-  const [discountPercent, setDiscountPercent] = useState(8);
-  const [notes, setNotes] = useState('Includes 24-month extended hardware warranty and white-glove setup.');
+  const [customerName, setCustomerName] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [notes, setNotes] = useState('');
   const [customLogoUrl, setCustomLogoUrl] = useState('');
   const [currency, setCurrency] = useState('USD ($)');
 
 
-  const [lineItems, setLineItems] = useState([
-    { productId: products[0]?.id || 'prod-100', productName: products[0]?.name || 'OmniHub Server', qty: 2, unitPrice: products[0]?.unitPrice || 24500, taxRate: products[0]?.taxRatePercent || 8.5 }
-  ]);
+  const [lineItems, setLineItems] = useState([]);
 
   const addLineItem = () => {
-    const defaultProd = products[0] || { id: 'p1', name: 'Standard Unit', unitPrice: 5000, taxRatePercent: 8.5 };
+    const defaultProd = products[0] || { id: '', name: '', unitPrice: 0, taxRatePercent: 0 };
     setLineItems(prev => [
       ...prev,
       { productId: defaultProd.id, productName: defaultProd.name, qty: 1, unitPrice: defaultProd.unitPrice, taxRate: defaultProd.taxRatePercent }

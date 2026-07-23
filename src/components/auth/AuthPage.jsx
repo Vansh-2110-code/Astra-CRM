@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
 import { Sparkles, ShieldCheck, Mail, Lock, User, Building, ArrowRight, CheckCircle2, Key } from 'lucide-react';
 
-const AuthPage = () => {
+const AuthPage = ({ onBackToLanding }) => {
   const { login, signup } = useCRM();
   const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'forgot'
   const [email, setEmail] = useState('');
@@ -67,6 +67,24 @@ const AuthPage = () => {
       position: 'relative',
       overflow: 'hidden'
     }}>
+      {onBackToLanding && (
+        <button
+          onClick={onBackToLanding}
+          className="btn btn-secondary"
+          style={{
+            position: 'absolute',
+            top: '24px',
+            left: '36px',
+            zIndex: 10,
+            borderRadius: '12px',
+            padding: '10px 18px',
+            fontSize: '0.85rem',
+            fontWeight: '700'
+          }}
+        >
+          ← Back to Interactive Cover Page
+        </button>
+      )}
 
       {/* Decorative Glow Elements */}
       <div style={{

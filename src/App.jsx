@@ -22,14 +22,34 @@ import SalaryModule from './components/salary/SalaryModule';
 import AISalesAssistant from './components/leads/AISalesAssistant';
 import ReportsEngine from './components/reports/ReportsEngine';
 
+import LandingPage from './components/landing/LandingPage';
+
 const MainLayout = () => {
-  const { isAuthenticated, currentUser } = useCRM();
+  const { isAuthenticated, currentUser, login } = useCRM();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [viewMode, setViewMode] = useState('landing'); // 'landing' | 'auth'
 
-  // Show Login/Signup auth screen if not authenticated
+  // Handle Quick Demo Login from Cover Landing Page
+  const handleQuickLogin = async (email) => {
+    try {
+      await login(email, 'admin123');
+    } catch (err) {
+      setViewMode('auth');
+    }
+  };
+
+  // Show Landing Cover Page or Login/Signup screen if not authenticated
   if (!isAuthenticated) {
-    return <AuthPage />;
+    if (viewMode === 'auth') {
+      return <AuthPage onBackToLanding={() => setViewMode('landing')} />;
+    }
+    return (
+      <LandingPage
+        onNavigateToAuth={() => setViewMode('auth')}
+        onQuickLogin={handleQuickLogin}
+      />
+    );
   }
 
   // Render customer portal if logged in user is client customer

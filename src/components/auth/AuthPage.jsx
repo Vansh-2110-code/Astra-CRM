@@ -11,10 +11,13 @@ const AuthPage = () => {
   const [company, setCompany] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [show2FA, setShow2FA] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
+    setAuthError('');
     
     // Simulate 2FA prompt for enterprise admins
     if (!show2FA && email.includes('admin')) {
@@ -22,13 +25,28 @@ const AuthPage = () => {
       return;
     }
 
-    login(email, password);
+    setLoading(true);
+    try {
+      await login(email, password);
+    } catch (err) {
+      setAuthError(err.response?.data?.error || err.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignupSubmit = (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password || !name || !company) return;
-    signup({ email, password, name, company });
+    setAuthError('');
+    setLoading(true);
+    try {
+      await signup({ email, password, name, company });
+    } catch (err) {
+      setAuthError(err.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const quickLogin = (userEmail, userRole) => {
@@ -174,12 +192,19 @@ const AuthPage = () => {
               </div>
             )}
 
+            {authError && (
+              <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#f87171', fontSize: '0.85rem', marginTop: '12px', textAlign: 'center' }}>
+                {authError}
+              </div>
+            )}
+
             <button
               type="submit"
+              disabled={loading}
               className="btn gradient-btn-primary"
-              style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '12px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)' }}
+              style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '12px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', opacity: loading ? 0.7 : 1 }}
             >
-              <span>{show2FA ? 'Verify 2FA & Enter Portal' : 'Sign In to Astra CRM'}</span>
+              <span>{loading ? 'Authenticating...' : show2FA ? 'Verify 2FA & Enter Portal' : 'Sign In to Astra CRM'}</span>
               <ArrowRight style={{ width: '18px', height: '18px' }} />
             </button>
           </form>
@@ -252,12 +277,19 @@ const AuthPage = () => {
               </div>
             </div>
 
+            {authError && (
+              <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#f87171', fontSize: '0.85rem', marginBottom: '14px', textAlign: 'center' }}>
+                {authError}
+              </div>
+            )}
+
             <button
               type="submit"
+              disabled={loading}
               className="btn gradient-btn-primary"
-              style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '12px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+              style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '12px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', opacity: loading ? 0.7 : 1 }}
             >
-              <span>Onboard & Launch Workspace</span>
+              <span>{loading ? 'Creating Workspace...' : 'Onboard & Launch Workspace'}</span>
               <CheckCircle2 style={{ width: '18px', height: '18px' }} />
             </button>
           </form>

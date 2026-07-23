@@ -175,7 +175,25 @@ export const CRMProvider = ({ children }) => {
   };
 
   const signup = async (userData) => {
-    await api.post('/auth/signup', userData);
+    try {
+      const response = await api.post('/auth/signup', userData);
+      const { token, user } = response.data;
+
+      sessionStorage.setItem('astra_token', token);
+      sessionStorage.setItem('astra_user', JSON.stringify(user));
+      if (user.tenantId) {
+        sessionStorage.setItem('crm_active_tenant', user.tenantId);
+      }
+
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      setActiveTenantId(user.tenantId || null);
+      queryClient.clear();
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || 'Signup failed';
+      throw new Error(message);
+    }
   };
 
   const createRazorpayOrder = async (amount, currency) => {

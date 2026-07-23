@@ -21,6 +21,15 @@ exports.refresh = async (req, res) => {
   }
 };
 
+exports.signup = async (req, res) => {
+  try {
+    const result = await AuthService.signup(req.body);
+    res.status(201).json({ ...result, token: result.accessToken });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 exports.logout = async (req, res) => {
   try {
     const { userId } = req.body;

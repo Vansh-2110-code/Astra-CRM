@@ -33,8 +33,8 @@ const AuthPage = () => {
 
   const quickLogin = (userEmail, userRole) => {
     setEmail(userEmail);
-    setPassword('AstraSecure2026!');
-    login(userEmail, 'AstraSecure2026!');
+    setPassword('admin123');
+    login(userEmail, 'admin123');
   };
 
   return (

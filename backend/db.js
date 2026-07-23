@@ -1,13 +1,17 @@
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 const DB_FILE = path.join(__dirname, 'db.json');
 
 // Initialize database with structure and mock data if it does not exist
-function initDb() {
+async function initDb() {
   if (fs.existsSync(DB_FILE)) {
     return;
   }
+
+  // Pre-hash mock employee passwords for security
+  const defaultPasswordHash = bcrypt.hashSync('admin123', 10);
 
   const initialData = {
     tenants: [
@@ -32,31 +36,48 @@ function initDb() {
         status: "Active",
         maxSeats: 25,
         currency: "USD ($)"
+      },
+      {
+        id: "client-003",
+        name: "Vanguard Industrial Dynamics",
+        subdomain: "vanguard",
+        logo: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=150&auto=format&fit=crop&q=80",
+        industry: "Industrial Machinery & Components",
+        plan: "Starter",
+        status: "Active",
+        maxSeats: 10,
+        currency: "EUR (€)"
       }
     ],
     employees: [
       {
         id: "EMP-001",
+        clientId: "client-001",
         name: "Sarah Jenkins",
         email: "sarah.jenkins@apexglobal.io",
         designation: "VP of Sales Operations",
         roleId: "role-admin",
+        passwordHash: defaultPasswordHash,
         avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80"
       },
       {
         id: "EMP-002",
+        clientId: "client-001",
         name: "Marcus Vance",
         email: "marcus.vance@sales.apex.io",
         designation: "Enterprise Sales Director",
         roleId: "role-mgr",
+        passwordHash: defaultPasswordHash,
         avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
       },
       {
         id: "EMP-003",
+        clientId: "client-001",
         name: "Alex Rivera",
         email: "alex.rivera@sales.apex.io",
         designation: "Senior Account Executive",
         roleId: "role-exec",
+        passwordHash: defaultPasswordHash,
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
       }
     ],
@@ -90,20 +111,23 @@ function initDb() {
       }
     ],
     quotes: [],
+    orders: [],
+    tickets: [],
+    integrations: [],
     auditLogs: []
   };
 
-  fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf8');
+  await fs.promises.writeFile(DB_FILE, JSON.stringify(initialData, null, 2), 'utf8');
 }
 
-function readData() {
-  initDb();
-  const data = fs.readFileSync(DB_FILE, 'utf8');
+async function readData() {
+  await initDb();
+  const data = await fs.promises.readFile(DB_FILE, 'utf8');
   return JSON.parse(data);
 }
 
-function writeData(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+async function writeData(data) {
+  await fs.promises.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
 module.exports = {

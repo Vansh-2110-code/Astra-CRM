@@ -20,7 +20,8 @@ import {
   Moon,
   LogOut,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Wallet
 } from 'lucide-react';
 
 const MENU_ITEMS = [
@@ -42,6 +43,7 @@ const MENU_ITEMS = [
   { id: 'marketing', label: 'Marketing Campaigns', icon: Megaphone, category: 'Growth' },
   { id: 'documents', label: 'Document Vault', icon: FolderLock, category: 'Growth' },
   { id: 'integrations', label: 'Integrations Hub', icon: Boxes, category: 'Growth' },
+  { id: 'salary', label: 'Salary & Payroll', icon: Wallet, category: 'HR' },
 ];
 
 const Sidebar = ({ activeTab, setActiveTab }) => {

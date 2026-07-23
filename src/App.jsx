@@ -18,6 +18,7 @@ import CampaignManager from './components/marketing/CampaignManager';
 import DocumentVault from './components/documents/DocumentVault';
 import IntegrationHub from './components/integrations/IntegrationHub';
 import CustomerDashboard from './components/customer/CustomerDashboard';
+import SalaryModule from './components/salary/SalaryModule';
 
 const MainLayout = () => {
   const { isAuthenticated, currentUser } = useCRM();
@@ -66,6 +67,8 @@ const MainLayout = () => {
         return <DocumentVault />;
       case 'integrations':
         return <IntegrationHub />;
+      case 'salary':
+        return <SalaryModule />;
       default:
         return <ExecutiveDashboard />;
     }

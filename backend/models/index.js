@@ -8,6 +8,7 @@ const AuditLog = require('./AuditLog');
 const Order = require('./Order');
 const Ticket = require('./Ticket');
 const Integration = require('./Integration');
+const SalarySlip = require('./SalarySlip');
 
 // Define Relationships
 Tenant.hasMany(Employee, { foreignKey: 'clientId', as: 'employees' });
@@ -37,6 +38,9 @@ Ticket.belongsTo(Tenant, { foreignKey: 'clientId', as: 'tenant' });
 Tenant.hasMany(Integration, { foreignKey: 'clientId', as: 'integrations' });
 Integration.belongsTo(Tenant, { foreignKey: 'clientId', as: 'tenant' });
 
+Tenant.hasMany(SalarySlip, { foreignKey: 'clientId', as: 'salarySlips' });
+SalarySlip.belongsTo(Tenant, { foreignKey: 'clientId', as: 'tenant' });
+
 module.exports = {
   Tenant,
   Role,
@@ -47,5 +51,6 @@ module.exports = {
   AuditLog,
   Order,
   Ticket,
-  Integration
+  Integration,
+  SalarySlip
 };

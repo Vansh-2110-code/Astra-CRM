@@ -364,8 +364,10 @@ export const CRMProvider = ({ children }) => {
         if (target) target.status = status;
       },
       products: [
-        { id: 'p1', clientId: 'client-001', name: 'Astra CRM Enterprise Edition', sku: 'ASTRA-ENT-001', category: 'Software Licences', unitPrice: 799, taxRatePercent: 18, stockCount: 9999, description: 'SaaS Enterprise license with full support and modules.' },
-        { id: 'p2', clientId: 'client-001', name: 'Dedicated Support Package 24/7', sku: 'ASTRA-SUPP-SLA', category: 'Professional Services', unitPrice: 299, taxRatePercent: 18, stockCount: 9999, description: '24/7 technical hotline access and dedicated response times.' }
+        { id: 'p1', clientId: 'client-001', name: 'Astra CRM Enterprise Edition', sku: 'ASTRA-ENT-001', category: 'Software Licences', unitPrice: 799, taxRatePercent: 18, stockCount: 9999, variants: ['Cloud Hosted', 'On-Premise', 'Hybrid'], description: 'SaaS Enterprise license with full support and modules.' },
+        { id: 'p2', clientId: 'client-001', name: 'Dedicated Support Package 24/7', sku: 'ASTRA-SUPP-SLA', category: 'Professional Services', unitPrice: 299, taxRatePercent: 18, stockCount: 9999, variants: ['Standard SLA', 'Premium SLA'], description: '24/7 technical hotline access and dedicated response times.' },
+        { id: 'p3', clientId: 'client-001', name: 'Data Migration Toolkit', sku: 'ASTRA-DMT-003', category: 'Software Tools', unitPrice: 499, taxRatePercent: 18, stockCount: 500, variants: ['Basic', 'Advanced ETL'], description: 'Automated data migration and ETL pipeline toolkit for CRM onboarding.' },
+        { id: 'p4', clientId: 'client-002', name: 'OmniTech Barcode Scanner Pro', sku: 'OMNI-BSP-200', category: 'Hardware Devices', unitPrice: 1200, taxRatePercent: 12, stockCount: 340, variants: ['Wireless', 'USB Wired'], description: 'Industrial-grade barcode scanner with 2D/QR code support.' }
       ], addProduct: () => {},
       deals: resolvedDeals, updateDealStage: (id, stage) => {
         const target = resolvedDeals.find(d => d.id === id);

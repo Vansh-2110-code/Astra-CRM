@@ -97,13 +97,13 @@ const ProductCatalog = () => {
                 <div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>UNIT PRICE</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#34d399' }}>
-                    ${prod.unitPrice.toLocaleString()}
+                    ${(prod.unitPrice || 0).toLocaleString()}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>TAX RATE</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-                    {prod.taxRatePercent}% VAT/GST
+                    {prod.taxRatePercent || 18}% VAT/GST
                   </div>
                 </div>
               </div>
@@ -112,7 +112,7 @@ const ProductCatalog = () => {
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '4px' }}>VARIANTS AVAILABLE:</div>
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                  {prod.variants.map(v => (
+                  {(prod.variants || ['Standard Edition']).map(v => (
                     <span key={v} className="badge badge-blue" style={{ fontSize: '0.65rem' }}>{v}</span>
                   ))}
                 </div>
@@ -122,9 +122,9 @@ const ProductCatalog = () => {
             {/* Stock Level Footer */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-                <Boxes style={{ width: '16px', height: '16px', color: prod.stockCount < 50 ? '#fbbf24' : '#34d399' }} />
-                <span style={{ fontWeight: '700', color: prod.stockCount < 50 ? '#fbbf24' : '#34d399' }}>
-                  {prod.stockCount} in stock
+                <Boxes style={{ width: '16px', height: '16px', color: (prod.stockCount || 0) < 50 ? '#fbbf24' : '#34d399' }} />
+                <span style={{ fontWeight: '700', color: (prod.stockCount || 0) < 50 ? '#fbbf24' : '#34d399' }}>
+                  {prod.stockCount || 0} in stock
                 </span>
               </div>
 

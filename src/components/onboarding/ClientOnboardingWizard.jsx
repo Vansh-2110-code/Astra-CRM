@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 const ClientOnboardingWizard = () => {
-  const { allClients, activeTenant, setActiveTenantId, onboardNewClient, upgradeTenantPlan } = useCRM();
+  const { allClients, activeTenant, setActiveTenantId, onboardNewClient, upgradeTenantPlan, createRazorpayOrder, verifyRazorpayPayment } = useCRM();
 
   const [showModal, setShowModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -83,6 +83,52 @@ const ClientOnboardingWizard = () => {
       setSelectedClient(null);
     } catch (err) {
       alert(`Subscription upgrade failed: ${err.message}`);
+    }
+  };
+
+  const handleRazorpayCheckout = async () => {
+    if (!selectedClient) return;
+    const price = selectedPlan === 'Starter' ? 99 : selectedPlan === 'Professional' ? 299 : 799;
+
+    try {
+      const order = await createRazorpayOrder(price, 'INR');
+
+      const options = {
+        key: 'rzp_test_mockKeyId2026',
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Astra CRM Enterprise',
+        description: `Upgrade Plan to ${selectedPlan}`,
+        order_id: order.id,
+        handler: async (response) => {
+          try {
+            await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              tenantId: selectedClient.id,
+              plan: selectedPlan
+            });
+            alert(`Razorpay Payment Successful! Upgraded ${selectedClient.name} to ${selectedPlan}.`);
+            setShowCheckoutModal(false);
+            setSelectedClient(null);
+          } catch (verifyErr) {
+            alert(`Payment verification failed: ${verifyErr.message}`);
+          }
+        },
+        prefill: {
+          name: selectedClient.name,
+          email: selectedClient.tenantAdmin
+        },
+        theme: {
+          color: '#3b82f6'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      alert(`Razorpay checkout initialization failed: ${err.message}`);
     }
   };
 
@@ -448,8 +494,16 @@ const ClientOnboardingWizard = () => {
                 >
                   Cancel
                 </button>
+                <button
+                  type="button"
+                  onClick={handleRazorpayCheckout}
+                  className="btn gradient-btn-primary"
+                  style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' }}
+                >
+                  Pay with Razorpay
+                </button>
                 <button type="submit" className="btn gradient-btn-primary" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-                  Pay & Upgrade Plan
+                  Pay with Stripe (Simulated)
                 </button>
               </div>
             </form>

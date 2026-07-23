@@ -154,6 +154,17 @@ export const CRMProvider = ({ children }) => {
     alert("Signup completed! Please sign in using your credentials.");
   };
 
+  const createRazorpayOrder = async (amount, currency) => {
+    const res = await api.post('/payments/razorpay/order', { amount, currency });
+    return res.data;
+  };
+
+  const verifyRazorpayPayment = async (paymentDetails) => {
+    const res = await api.post('/payments/razorpay/verify', paymentDetails);
+    queryClient.invalidateQueries({ queryKey: ['tenants'] });
+    return res.data;
+  };
+
   // MUTATIONS (Write Operations)
   const addLeadMutation = useMutation({
     mutationFn: (leadData) => api.post('/leads', leadData),
@@ -246,7 +257,8 @@ export const CRMProvider = ({ children }) => {
       documents,
       integrations: integrationsQuery.data || [], toggleIntegration: (name, enabled) => toggleIntegrationMutation.mutateAsync({ name, enabled }),
       globalSearch, setGlobalSearch,
-      notifications, setNotifications
+      notifications, setNotifications,
+      createRazorpayOrder, verifyRazorpayPayment
     }}>
       {children}
     </CRMContext.Provider>

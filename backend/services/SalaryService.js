@@ -19,17 +19,27 @@ class SalaryService {
     const grossSalary = (basicSalary || 0) + (hra || 0) + (transportAllowance || 0)
       + (medicalAllowance || 0) + (specialAllowance || 0) + (bonus || 0);
 
-    // Standard Indian payroll deductions
-    const pf = Math.round(basicSalary * 0.12);
+    const days = workingDays || 22;
+    const actualDaysWorked = daysWorked !== undefined ? daysWorked : days;
+
+    // Standard Indian payroll statutory deductions
+    const pf = Math.round((basicSalary || 0) * 0.12);
     const esi = grossSalary <= 21000 ? Math.round(grossSalary * 0.0075) : 0;
     const professionalTax = grossSalary > 15000 ? 200 : 0;
     const incomeTax = Math.round(grossSalary * 0.10);
+    const statutoryDeductions = pf + esi + professionalTax + incomeTax;
 
-    const totalDeductions = pf + esi + professionalTax + incomeTax;
-    const netSalary = grossSalary - totalDeductions;
-    const days = workingDays || 22;
-    const perDayRate = Math.round(netSalary / days);
-    const actualDaysWorked = daysWorked || days;
+    // Full month net before LOP
+    const fullMonthNet = grossSalary - statutoryDeductions;
+    const perDayRate = Math.round(fullMonthNet / days);
+
+    // LOP (Loss of Pay) Deduction for absent days
+    const absentDays = Math.max(0, days - actualDaysWorked);
+    const lopDeduction = Math.round(perDayRate * absentDays);
+
+    // Net Payable Salary = Full Net - LOP Deduction (pro-rated by days worked)
+    const netSalary = Math.max(0, fullMonthNet - lopDeduction);
+    const totalDeductions = statutoryDeductions + lopDeduction;
 
     const count = await SalarySlip.count();
     const id = `SAL-${year}-${String(count + 1).padStart(4, '0')}`;
@@ -38,7 +48,7 @@ class SalaryService {
       id, clientId, employeeId, employeeName, designation,
       month, year,
       basicSalary, hra, transportAllowance, medicalAllowance, specialAllowance, bonus,
-      grossSalary, pf, esi, professionalTax, incomeTax, totalDeductions,
+      grossSalary, pf, esi, professionalTax, incomeTax, lopDeduction, totalDeductions,
       netSalary, perDayRate,
       workingDays: days,
       daysWorked: actualDaysWorked,

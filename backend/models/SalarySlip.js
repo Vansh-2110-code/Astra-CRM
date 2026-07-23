@@ -83,6 +83,11 @@ const SalarySlip = sequelize.define('SalarySlip', {
     defaultValue: 0,
     field: 'income_tax'
   },
+  lopDeduction: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+    field: 'lop_deduction'
+  },
   totalDeductions: {
     type: DataTypes.FLOAT,
     defaultValue: 0,

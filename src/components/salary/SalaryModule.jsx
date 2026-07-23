@@ -88,9 +88,18 @@ const SalaryModule = () => {
     const esi = gross <= 21000 ? Math.round(gross * 0.0075) : 0;
     const profTax = 200;
     const incomeTax = Math.round(gross * 0.10);
-    const totalDeductions = pf + esi + profTax + incomeTax;
-    const net = gross - totalDeductions;
-    const perDay = Math.round(net / formData.workingDays);
+    const statutoryDeductions = pf + esi + profTax + incomeTax;
+
+    const days = formData.workingDays || 22;
+    const daysWorked = formData.daysWorked !== undefined ? formData.daysWorked : days;
+    const fullMonthNet = gross - statutoryDeductions;
+    const perDay = Math.round(fullMonthNet / days);
+
+    // LOP (Loss of Pay) Deduction for absent days
+    const absentDays = Math.max(0, days - daysWorked);
+    const lopDeduction = Math.round(perDay * absentDays);
+    const net = Math.max(0, fullMonthNet - lopDeduction);
+    const totalDeductions = statutoryDeductions + lopDeduction;
 
     const newSlip = {
       id: `SAL-${formData.year}-${String(salarySlips.length + 1).padStart(4, '0')}`,
@@ -105,9 +114,9 @@ const SalaryModule = () => {
       specialAllowance: formData.specialAllowance,
       bonus: formData.bonus,
       grossSalary: gross, pf, esi, professionalTax: profTax, incomeTax,
-      totalDeductions, netSalary: net, perDayRate: perDay,
-      workingDays: formData.workingDays,
-      daysWorked: formData.daysWorked,
+      lopDeduction, totalDeductions, netSalary: net, perDayRate: perDay,
+      workingDays: days,
+      daysWorked: daysWorked,
       status: 'Generated',
       createdAt: new Date().toISOString()
     };
@@ -489,8 +498,15 @@ const SalaryModule = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>ESI</span><span>{formatCurrency(showSlipModal.esi)}</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Professional Tax</span><span>{formatCurrency(showSlipModal.professionalTax)}</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Income Tax (TDS)</span><span>{formatCurrency(showSlipModal.incomeTax)}</span></div>
+                  {(showSlipModal.workingDays - showSlipModal.daysWorked > 0) && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444', fontWeight: '700' }}>
+                      <span>Loss of Pay ({showSlipModal.workingDays - showSlipModal.daysWorked} Days Unpaid)</span>
+                      <span>{formatCurrency(showSlipModal.lopDeduction || Math.round(showSlipModal.perDayRate * (showSlipModal.workingDays - showSlipModal.daysWorked)))}</span>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', borderTop: '1px solid var(--border-color)', paddingTop: '6px', color: '#ef4444' }}>
-                    <span>Total Deductions</span><span>{formatCurrency(showSlipModal.totalDeductions)}</span>
+                    <span>Total Deductions</span>
+                    <span>{formatCurrency((showSlipModal.pf + showSlipModal.esi + showSlipModal.professionalTax + showSlipModal.incomeTax) + (showSlipModal.workingDays > showSlipModal.daysWorked ? (showSlipModal.lopDeduction || Math.round(showSlipModal.perDayRate * (showSlipModal.workingDays - showSlipModal.daysWorked))) : 0))}</span>
                   </div>
                 </div>
               </div>
@@ -501,8 +517,12 @@ const SalaryModule = () => {
               background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
               borderRadius: '12px'
             }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Net Payable Salary</div>
-              <div style={{ fontSize: '2rem', fontWeight: '900', color: '#10b981' }}>{formatCurrency(showSlipModal.netSalary)}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                Net Payable Salary ({showSlipModal.daysWorked} of {showSlipModal.workingDays} Days Worked)
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: '900', color: '#10b981' }}>
+                {formatCurrency(showSlipModal.daysWorked < showSlipModal.workingDays ? Math.round(showSlipModal.perDayRate * showSlipModal.daysWorked) : showSlipModal.netSalary)}
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>

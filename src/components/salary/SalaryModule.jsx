@@ -483,7 +483,26 @@ const SalaryModule = () => {
                   <select
                     required
                     value={formData.employeeId}
-                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                    onChange={(e) => {
+                      const empId = e.target.value;
+                      const selectedEmp = employeeSalaryData.find(emp => emp.id === empId);
+                      if (selectedEmp) {
+                        setFormData({
+                          ...formData,
+                          employeeId: empId,
+                          basicSalary: selectedEmp.basicSalary,
+                          hra: selectedEmp.hra,
+                          transportAllowance: selectedEmp.transport,
+                          medicalAllowance: selectedEmp.medical,
+                          specialAllowance: selectedEmp.special,
+                          bonus: 0,
+                          workingDays: 22,
+                          daysWorked: selectedEmp.daysWorked || 22
+                        });
+                      } else {
+                        setFormData({ ...formData, employeeId: empId });
+                      }
+                    }}
                     className="form-select"
                   >
                     <option value="">-- Choose Employee --</option>

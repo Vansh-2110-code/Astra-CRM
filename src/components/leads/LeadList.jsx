@@ -24,8 +24,9 @@ const LeadList = () => {
   const [selectedStatus, setSelectedStatus] = useState('ALL');
 
   const filteredLeads = leads.filter(l => {
+    const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
     const matchesSource = selectedSource === 'ALL' || l.source === selectedSource;
-    const matchesStatus = selectedStatus === 'ALL' || l.status === selectedStatus;
+    const matchesStatus = selectedStatus === 'ALL' || normStatus === selectedStatus;
     const matchesSearch = l.name.toLowerCase().includes(globalSearch.toLowerCase()) ||
                           l.company.toLowerCase().includes(globalSearch.toLowerCase()) ||
                           l.email.toLowerCase().includes(globalSearch.toLowerCase());
@@ -112,11 +113,13 @@ const LeadList = () => {
             style={{ fontSize: '0.8rem' }}
           >
             <option value="ALL">All Lifecycle Stages</option>
-            <option value="Lead">Lead Intake</option>
+            <option value="Lead Intake">Lead Intake</option>
             <option value="Qualified">Qualified</option>
             <option value="Need Analysis">Need Analysis</option>
             <option value="Proposal Sent">Proposal Sent</option>
             <option value="Negotiation">Negotiation</option>
+            <option value="Won">Won</option>
+            <option value="Lost">Lost</option>
           </select>
         </div>
 
@@ -182,12 +185,12 @@ const LeadList = () => {
                   </td>
                   <td>
                     <select
-                      value={lead.status}
+                      value={(!lead.status || lead.status === 'Lead') ? 'Lead Intake' : lead.status}
                       onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
                       className="form-select"
                       style={{ fontSize: '0.75rem', padding: '4px 8px', fontWeight: '700' }}
                     >
-                      <option value="Lead">Lead Intake</option>
+                      <option value="Lead Intake">Lead Intake</option>
                       <option value="Qualified">Qualified</option>
                       <option value="Need Analysis">Need Analysis</option>
                       <option value="Proposal Sent">Proposal Sent</option>

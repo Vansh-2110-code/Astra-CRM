@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const STAGES = [
-  { id: 'Lead', label: 'Lead Intake', color: '#60a5fa' },
+  { id: 'Lead Intake', label: 'Lead Intake', color: '#60a5fa' },
   { id: 'Qualified', label: 'Qualified Opportunity', color: '#06b6d4' },
   { id: 'Need Analysis', label: 'Need Analysis', color: '#8b5cf6' },
   { id: 'Proposal Sent', label: 'Proposal Sent', color: '#f59e0b' },
@@ -22,6 +22,11 @@ const STAGES = [
   { id: 'Won', label: 'Closed Won', color: '#10b981' },
   { id: 'Lost', label: 'Closed Lost', color: '#f43f5e' },
 ];
+
+const normalizeStage = (stg) => {
+  if (!stg || stg === 'Lead') return 'Lead Intake';
+  return stg;
+};
 
 const KanbanBoard = () => {
   const { deals, updateDealStage, createDeal, employees = [], currentUser } = useCRM();
@@ -167,7 +172,7 @@ const KanbanBoard = () => {
         paddingBottom: '16px'
       }}>
         {STAGES.map(stage => {
-          const stageDeals = deals.filter(d => d.stage === stage.id && d.pipelineId === activePipeline);
+          const stageDeals = deals.filter(d => normalizeStage(d.stage) === stage.id && (d.pipelineId === activePipeline || !d.pipelineId));
           const stageTotalValue = stageDeals.reduce((sum, d) => sum + d.dealValue, 0);
 
           return (

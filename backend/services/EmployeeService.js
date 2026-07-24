@@ -12,6 +12,12 @@ class EmployeeService {
   async createEmployee(tenant, employeeData) {
     const { name, email, designation, roleId, password, baseSalary, salary } = employeeData;
 
+    // Check duplicate email across system
+    const existing = await EmployeeRepository.findOne({ where: { email } });
+    if (existing) {
+      throw new Error(`An employee profile with email '${email}' already exists in the system.`);
+    }
+
     // Enforce seat limit check
     const activeCount = await EmployeeRepository.count({
       where: { clientId: tenant.id }

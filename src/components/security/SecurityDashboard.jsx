@@ -45,7 +45,8 @@ const SecurityDashboard = () => {
       setShowAddEmpModal(false);
       setNewEmp({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000 });
     } catch (err) {
-      alert(err.message || 'Failed to create employee');
+      const msg = err.response?.data?.error || err.message || 'Failed to create employee';
+      alert(msg);
     }
   };
 

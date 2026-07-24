@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useCRM } from '../../context/CRMContext';
-import { Sparkles, ShieldCheck, Mail, Lock, User, Building, ArrowRight, CheckCircle2, Key } from 'lucide-react';
+import { useCRM, DEMO_ACCOUNTS } from '../../context/CRMContext';
+import { Sparkles, ShieldCheck, Mail, Lock, User, Building, ArrowRight, CheckCircle2, Key, Zap } from 'lucide-react';
 
 const AuthPage = ({ onBackToLanding }) => {
   const { login, signup } = useCRM();
@@ -49,7 +49,7 @@ const AuthPage = ({ onBackToLanding }) => {
     }
   };
 
-  const quickLogin = (userEmail, userRole) => {
+  const quickLogin = (userEmail) => {
     setEmail(userEmail);
     setPassword('admin123');
     login(userEmail, 'admin123');
@@ -225,6 +225,39 @@ const AuthPage = ({ onBackToLanding }) => {
               <span>{loading ? 'Authenticating...' : show2FA ? 'Verify 2FA & Enter Portal' : 'Sign In to Astra CRM'}</span>
               <ArrowRight style={{ width: '18px', height: '18px' }} />
             </button>
+
+            {/* 1-Click Role Accounts Quick Selector */}
+            <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', textAlign: 'center' }}>
+                ⚡ Or 1-Click Demo Login as:
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {DEMO_ACCOUNTS.map((acc) => (
+                  <button
+                    key={acc.id}
+                    type="button"
+                    onClick={() => quickLogin(acc.email)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: `1px solid ${acc.color}44`,
+                      color: '#fff',
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: acc.color, flexShrink: 0 }} />
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{acc.name.split(' ')[0]} ({acc.badge})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </form>
         )}
 

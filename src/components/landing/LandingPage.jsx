@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useCRM } from '../../context/CRMContext';
+import { useCRM, DEMO_ACCOUNTS } from '../../context/CRMContext';
 import {
   Sparkles,
   ShieldCheck,
@@ -539,6 +539,164 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
       </section>
 
+      {/* 1-CLICK INTERACTIVE DEMO ACCOUNTS SECTION */}
+      <section id="demo-roles" style={{
+        position: 'relative',
+        zIndex: 10,
+        padding: '80px 48px',
+        maxWidth: '1280px',
+        margin: '0 auto',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '6px 16px',
+          borderRadius: '30px',
+          background: 'rgba(168, 85, 247, 0.12)',
+          border: '1px solid rgba(168, 85, 247, 0.3)',
+          color: '#c084fc',
+          fontSize: '0.8rem',
+          fontWeight: '700',
+          marginBottom: '20px'
+        }}>
+          <Sparkles style={{ width: '16px', height: '16px', color: '#c084fc' }} />
+          <span>INSTANT ENTERPRISE PERSONA ACCESS</span>
+        </div>
+
+        <h2 style={{
+          fontSize: '2.8rem',
+          fontWeight: '900',
+          letterSpacing: '-0.03em',
+          marginBottom: '16px',
+          background: 'linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          1-Click Live Interactive Demo Accounts
+        </h2>
+
+        <p style={{
+          fontSize: '1.1rem',
+          color: '#94a3b8',
+          maxWidth: '720px',
+          margin: '0 auto 48px auto',
+          lineHeight: 1.6
+        }}>
+          Select any of the 6 core system access roles below to instantly test Astra CRM under that specific persona. Each account comes pre-seeded with rich domain records merged into the workspace.
+        </p>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gap: '24px',
+          textAlign: 'left'
+        }}>
+          {DEMO_ACCOUNTS.map((acc) => (
+            <div
+              key={acc.id}
+              style={{
+                background: 'rgba(17, 24, 39, 0.75)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Subtle role color highlight bar */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '4px',
+                background: `linear-gradient(90deg, ${acc.color} 0%, rgba(255,255,255,0.2) 100%)`
+              }} />
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <span style={{
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: '800',
+                    background: `${acc.color}22`,
+                    border: `1px solid ${acc.color}55`,
+                    color: acc.color,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}>
+                    {acc.badge}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    ID: {acc.id}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                  <img
+                    src={acc.avatar}
+                    alt={acc.name}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: `2px solid ${acc.color}`
+                    }}
+                  />
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#fff', margin: 0 }}>
+                      {acc.name}
+                    </h3>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>
+                      {acc.designation}
+                    </div>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '20px' }}>
+                  {acc.description}
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleLaunchDemo(acc.email)}
+                className="btn"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: `linear-gradient(135deg, ${acc.color} 0%, rgba(17, 24, 39, 0.9) 150%)`,
+                  border: `1px solid ${acc.color}66`,
+                  color: '#fff',
+                  fontWeight: '800',
+                  fontSize: '0.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  boxShadow: `0 6px 20px ${acc.color}33`,
+                  transition: 'transform 0.2s ease'
+                }}
+              >
+                <span>1-Click Demo Login</span>
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ZERO-TRUST SECURITY & AUDIT VAULT SECTION */}
       <section id="architecture" style={{
         position: 'relative',
@@ -896,7 +1054,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       {/* 1-CLICK DEMO LOGIN MODAL */}
       {showQuickModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ padding: '32px', maxWidth: '520px', borderRadius: '24px' }}>
+          <div className="modal-content" style={{ padding: '32px', maxWidth: '640px', borderRadius: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{
                 width: '48px',
@@ -910,64 +1068,56 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
               }}>
                 <LogIn style={{ color: '#fff', width: '24px', height: '24px' }} />
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '800' }}>1-Click Interactive Demo Login</h3>
-              <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                Select a persona role to instantly enter the live application.
+              <h3 style={{ fontSize: '1.4rem', fontWeight: '800' }}>1-Click Interactive Demo Login</h3>
+              <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>
+                Select any of the 6 system access roles to enter the live application instantly.
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                onClick={() => { setShowQuickModal(false); handleLaunchDemo('sarah.jenkins@apexglobal.io'); }}
-                className="btn gradient-btn-primary"
-                style={{ padding: '12px', justifyContent: 'space-between', borderRadius: '12px' }}
-              >
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>Sarah Jenkins (Super Admin)</div>
-                  <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Full platform access to all modules & data</div>
-                </div>
-                <ArrowRight style={{ width: '16px', height: '16px' }} />
-              </button>
-
-              <button
-                onClick={() => { setShowQuickModal(false); handleLaunchDemo('marcus.vance@sales.apex.io'); }}
-                className="btn btn-secondary"
-                style={{ padding: '12px', justifyContent: 'space-between', borderRadius: '12px' }}
-              >
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>Marcus Vance (Sales Manager)</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Sales pipeline, quotation engine & analytics</div>
-                </div>
-                <ArrowRight style={{ width: '16px', height: '16px' }} />
-              </button>
-
-              <button
-                onClick={() => { setShowQuickModal(false); handleLaunchDemo('alex.rivera@sales.apex.io'); }}
-                className="btn btn-secondary"
-                style={{ padding: '12px', justifyContent: 'space-between', borderRadius: '12px' }}
-              >
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>Alex Rivera (Sales Executive)</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Lead management, call tasks & deal creation</div>
-                </div>
-                <ArrowRight style={{ width: '16px', height: '16px' }} />
-              </button>
-
-              <button
-                onClick={() => { setShowQuickModal(false); handleLaunchDemo('a.thorne@biogenetics.org'); }}
-                className="btn btn-secondary"
-                style={{ padding: '12px', justifyContent: 'space-between', borderRadius: '12px' }}
-              >
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>Dr. Aris Thorne (Customer)</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Customer self-service portal & ticket queue</div>
-                </div>
-                <ArrowRight style={{ width: '16px', height: '16px' }} />
-              </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+              {DEMO_ACCOUNTS.map((acc) => (
+                <button
+                  key={acc.id}
+                  onClick={() => { setShowQuickModal(false); handleLaunchDemo(acc.email); }}
+                  className="btn"
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: '14px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: `1px solid ${acc.color}44`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <img
+                      src={acc.avatar}
+                      alt={acc.name}
+                      style={{ width: '42px', height: '42px', borderRadius: '50%', border: `2px solid ${acc.color}`, objectFit: 'cover', flexShrink: 0 }}
+                    />
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '800', fontSize: '0.95rem', color: '#fff' }}>{acc.name}</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: '800', padding: '2px 8px', borderRadius: '10px', background: `${acc.color}22`, color: acc.color, border: `1px solid ${acc.color}44`, textTransform: 'uppercase' }}>
+                          {acc.badge}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '3px' }}>
+                        {acc.designation} • {acc.description.slice(0, 65)}...
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowRight style={{ width: '18px', height: '18px', color: acc.color, flexShrink: 0 }} />
+                </button>
+              ))}
             </div>
 
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <button onClick={() => setShowQuickModal(false)} className="btn btn-secondary" style={{ padding: '8px 20px' }}>
+            <div style={{ marginTop: '24px', textAlign: 'center' }}>
+              <button onClick={() => setShowQuickModal(false)} className="btn btn-secondary" style={{ padding: '10px 24px' }}>
                 Close
               </button>
             </div>

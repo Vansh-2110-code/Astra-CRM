@@ -4,14 +4,126 @@ import api from '../utils/api';
 
 const CRMContext = createContext();
 
+export const DEMO_ACCOUNTS = [
+  {
+    id: "EMP-001",
+    email: "sarah.jenkins@apexglobal.io",
+    name: "Sarah Jenkins",
+    role: "Super Admin / Org Admin",
+    roleId: "role-admin",
+    designation: "VP of Sales Operations",
+    tenantId: "client-001",
+    company: "Apex Global Tech",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
+    badge: "Super Admin",
+    color: "#6366f1",
+    description: "Full platform control across all modules, tenant provisioning, security audit vault & executive telemetry."
+  },
+  {
+    id: "EMP-002",
+    email: "marcus.vance@sales.apex.io",
+    name: "Marcus Vance",
+    role: "Sales Manager",
+    roleId: "role-mgr",
+    designation: "Enterprise Sales Director",
+    tenantId: "client-001",
+    company: "Apex Global Tech",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+    badge: "Sales Manager",
+    color: "#a855f7",
+    description: "Sales pipeline forecasting, quotation approvals, team quota tracking & revenue telemetry."
+  },
+  {
+    id: "EMP-003",
+    email: "alex.rivera@sales.apex.io",
+    name: "Alex Rivera",
+    role: "Sales Executive",
+    roleId: "role-exec",
+    designation: "Senior Account Executive",
+    tenantId: "client-001",
+    company: "Apex Global Tech",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    badge: "Sales Exec",
+    color: "#38bdf8",
+    description: "Lead qualification, product quote builder, deal stage execution & call follow-up tasks."
+  },
+  {
+    id: "EMP-008",
+    email: "elena.rostova@hr.apex.io",
+    name: "Elena Rostova",
+    role: "HR / HR Manager",
+    roleId: "role-hr",
+    designation: "Head of Human Resources",
+    tenantId: "client-001",
+    company: "Apex Global Tech",
+    avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&auto=format&fit=crop&q=80",
+    badge: "HR Manager",
+    color: "#ec4899",
+    description: "Employee roster management, salary structure, attendance tracking & HR compliance."
+  },
+  {
+    id: "EMP-009",
+    email: "vikram.patel@ops.apex.io",
+    name: "Vikram Patel",
+    role: "Operations Head",
+    roleId: "role-ops",
+    designation: "Director of Operations & Support",
+    tenantId: "client-001",
+    company: "Apex Global Tech",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    badge: "Operations Head",
+    color: "#f59e0b",
+    description: "Order fulfillment, customer support tickets, warranty verification & API integrations."
+  },
+  {
+    id: "EMP-010",
+    email: "a.thorne@biogenetics.org",
+    name: "Dr. Aris Thorne",
+    role: "Customer / Portal User",
+    roleId: "role-customer",
+    designation: "CTO, BioGenetics Lab Solutions",
+    tenantId: "client-001",
+    company: "BioGenetics Lab Solutions",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80",
+    badge: "Customer Portal",
+    color: "#10b981",
+    description: "Self-service customer portal, support ticket submission, quote viewing & SLA status."
+  }
+];
+
 export const CRMProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const [theme, setTheme] = useState('dark');
 
-  // Local fallback states for mutations
-  const [localLeads, setLocalLeads] = useState([]);
-  const [localDeals, setLocalDeals] = useState([]);
-  const [localQuotes, setLocalQuotes] = useState([]);
+  // Local fallback states for mutations populated with pre-seeded data
+  const [localLeads, setLocalLeads] = useState([
+    { id: "lead-01", clientId: "client-001", name: "Dr. Aris Thorne", company: "BioGenetics Lab Solutions", email: "a.thorne@biogenetics.org", phone: "+1 (555) 234-5678", source: "Website Forms", assignedTo: "Alex Rivera", notes: "Requested cloud server architecture specs.", tags: ["Enterprise", "High Value"], status: "Lead", score: 94, potentialValue: 280000 },
+    { id: "lead-02", clientId: "client-001", name: "Eleanor Vance", company: "Apex Global Partner Ops", email: "eleanor@apex.io", phone: "+1 (555) 876-5432", source: "Referral", assignedTo: "Marcus Vance", notes: "Inbound partner referral for software rollout.", tags: ["Partner", "Urgent"], status: "Qualified", score: 85, potentialValue: 150000 },
+    { id: "lead-03", clientId: "client-001", name: "Michael Chang", company: "Horizon Retail Networks", email: "m.chang@horizon.com", phone: "+1 (555) 345-6789", source: "Social Media", assignedTo: "Sarah Jenkins", notes: "Interested in POS data integration.", tags: ["Retail", "Cloud"], status: "Need Analysis", score: 78, potentialValue: 95000 }
+  ]);
+  const [localDeals, setLocalDeals] = useState([
+    { id: "deal-501", clientId: "client-001", title: "Acme Corp Cloud Overhaul", company: "Acme Corporation", dealValue: 150000, probability: 75, stage: "Proposal Sent", pipelineId: "pipe-enterprise" },
+    { id: "deal-502", clientId: "client-001", title: "BioGenetics Lab CRM Rollout", company: "BioGenetics Lab Solutions", dealValue: 280000, probability: 90, stage: "Negotiation", pipelineId: "pipe-enterprise" }
+  ]);
+  const [localQuotes, setLocalQuotes] = useState([
+    {
+      id: "QT-2026-880",
+      clientId: "client-001",
+      customerName: "Acme Corporation",
+      contactPerson: "Jonathan Sterling",
+      contactEmail: "j.sterling@acmecorp.com",
+      items: [{ productId: "p1", productName: "Astra CRM Enterprise License", quantity: 2, unitPrice: 24500, taxRate: 8.5, total: 49137 }],
+      subtotal: 49000,
+      discountPercent: 8,
+      discountAmount: 3920,
+      taxTotal: 4057,
+      grandTotal: 49137,
+      notes: "Includes 24-month extended hardware warranty.",
+      status: "Accepted",
+      createdDate: "2026-07-01",
+      validUntil: "2026-08-30"
+    }
+  ]);
   const [localClients, setLocalClients] = useState([]);
   const [localProducts, setLocalProducts] = useState([]);
 
@@ -313,7 +425,31 @@ export const CRMProvider = ({ children }) => {
       queryClient.clear();
       return { success: true };
     } catch (error) {
-      console.error('Login error:', error.message);
+      console.warn('Backend login API error/offline, checking local DEMO_ACCOUNTS:', error.message);
+      const matchedDemo = DEMO_ACCOUNTS.find(d => d.email.toLowerCase() === (email || '').toLowerCase());
+      if (matchedDemo) {
+        const demoUser = {
+          id: matchedDemo.id,
+          name: matchedDemo.name,
+          email: matchedDemo.email,
+          role: matchedDemo.role,
+          roleId: matchedDemo.roleId,
+          designation: matchedDemo.designation,
+          tenantId: matchedDemo.tenantId,
+          company: matchedDemo.company,
+          avatar: matchedDemo.avatar
+        };
+        const mockToken = `demo_token_${matchedDemo.roleId}_${Date.now()}`;
+        sessionStorage.setItem('astra_token', mockToken);
+        sessionStorage.setItem('astra_user', JSON.stringify(demoUser));
+        sessionStorage.setItem('crm_active_tenant', matchedDemo.tenantId);
+
+        setCurrentUser(demoUser);
+        setIsAuthenticated(true);
+        setActiveTenantId(matchedDemo.tenantId);
+        queryClient.clear();
+        return { success: true, isDemo: true };
+      }
       throw error;
     }
   };

@@ -21,7 +21,9 @@ import {
   Layers,
   Shield,
   Wallet,
-  LogIn
+  LogIn,
+  ShoppingBag,
+  Boxes
 } from 'lucide-react';
 
 const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
@@ -536,6 +538,245 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ENTERPRISE CORE FEATURES SUITE SECTION */}
+      <section id="features" style={{
+        position: 'relative',
+        zIndex: 10,
+        padding: '100px 48px 60px 48px',
+        maxWidth: '1280px',
+        margin: '0 auto',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '6px 16px',
+          borderRadius: '30px',
+          background: 'rgba(99, 102, 241, 0.12)',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
+          color: '#a5b4fc',
+          fontSize: '0.8rem',
+          fontWeight: '700',
+          marginBottom: '20px'
+        }}>
+          <Zap style={{ width: '16px', height: '16px', color: '#818cf8' }} />
+          <span>FULL LIFECYCLE SALES & OPERATIONS ENGINE</span>
+        </div>
+
+        <h2 style={{
+          fontSize: '3rem',
+          fontWeight: '900',
+          letterSpacing: '-0.03em',
+          marginBottom: '16px',
+          background: 'linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          Comprehensive Enterprise Feature Suite
+        </h2>
+
+        <p style={{
+          fontSize: '1.15rem',
+          color: '#94a3b8',
+          maxWidth: '780px',
+          margin: '0 auto 56px auto',
+          lineHeight: 1.6
+        }}>
+          Everything your revenue and operational teams need—from AI lead scoring and multi-currency quotes to order fulfillment, HR payroll telemetry, and zero-trust security.
+        </p>
+
+        {/* Feature Cards Grid (2x3 Layout) */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '28px',
+          textAlign: 'left'
+        }}>
+          
+          {/* Feature 1: Omnichannel Lead Acquisition & AI Scoring */}
+          <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderLeft: '4px solid #6366f1' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(99, 102, 241, 0.15)', padding: '12px', borderRadius: '14px' }}>
+                <Users style={{ color: '#818cf8', width: '24px', height: '24px' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.12)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                LEAD SCORING ENGINE
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '10px' }}>Omnichannel Lead Acquisition & AI Scoring</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              Capture leads from Website forms, Email campaigns, Referrals & Social ads. Compute real-time score values with automated duplicate domain matching warnings.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Score Math: Base(50) + Value Boost + Source Trust</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>DUP MATCH Banners for identical business emails</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>AI Sales Assistant lead qualification summary</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 2: Sales Pipeline Kanban & Revenue Forecasting */}
+          <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderLeft: '4px solid #a855f7' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(168, 85, 247, 0.15)', padding: '12px', borderRadius: '14px' }}>
+                <Kanban style={{ color: '#c084fc', width: '24px', height: '24px' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.12)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
+                PIPELINE KANBAN
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '10px' }}>Multi-Pipeline Kanban & Forecasting</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              Drag-and-drop opportunity management with weighted revenue math: deal value by probability, stage progression metrics, and win forecasting.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#e9d5ff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Real-time weighted win forecasting totals</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#e9d5ff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Drag-and-drop stage updates with instant recalculations</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#e9d5ff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Pipeline stage velocity tracking & deal analytics</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 3: Quotation Engine & PDF Builder */}
+          <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderLeft: '4px solid #38bdf8' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(56, 189, 248, 0.15)', padding: '12px', borderRadius: '14px' }}>
+                <FileText style={{ color: '#38bdf8', width: '24px', height: '24px' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                QUOTATION & PDF ENGINE
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '10px' }}>Multi-Currency Quote & Tax Engine</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              Line-item quotation builder computing exact Subtotals, Discount Amounts, VAT/GST taxes, and Grand Totals across USD, EUR, GBP, INR, and JPY currencies.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#bae6fd', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Automated tax & volume discount calculation math</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#bae6fd', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>1-Click clean PDF quotation generator</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#bae6fd', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Discount approval thresholds for Sales Managers</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 4: Order Fulfillment & Invoicing */}
+          <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderLeft: '4px solid #10b981' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(16, 185, 129, 0.15)', padding: '12px', borderRadius: '14px' }}>
+                <ShoppingBag style={{ color: '#34d399', width: '24px', height: '24px' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                FULFILLMENT & BILLING
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '10px' }}>Order Fulfillment & Invoice Engine</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              Convert accepted quotes into active orders (`ORD-2026-xxx`) in one click. Generate formal invoices (`INV-2026-xxx`) and track warehouse fulfillment states.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#a7f3d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Instant Quote-to-Order & Invoice conversion</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#a7f3d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Warehouse shipping & payment tracking states</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#a7f3d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Hardware inventory stock synchronization</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 5: HR Roster, Attendance & Payroll */}
+          <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderLeft: '4px solid #ec4899' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(236, 72, 153, 0.15)', padding: '12px', borderRadius: '14px' }}>
+                <Wallet style={{ color: '#f472b6', width: '24px', height: '24px' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', background: 'rgba(236, 72, 153, 0.12)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
+                HR & PAYROLL SUITE
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '10px' }}>HR Management & Payroll Telemetry</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              Corporate employee directory control, base salary & commission bonus calculations, batch attendance logging, and HR document compliance vault.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#fbcfe8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Base salary + performance bonus calculator</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#fbcfe8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Daily batch employee attendance recorder</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#fbcfe8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Digital Employee ID generation & role assignment</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 6: Integrations Hub & Marketing ROI */}
+          <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderLeft: '4px solid #f59e0b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '12px', borderRadius: '14px' }}>
+                <Boxes style={{ color: '#fbbf24', width: '24px', height: '24px' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                INTEGRATIONS HUB
+              </span>
+            </div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '10px' }}>Integrations Hub & Marketing ROI</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              Native API connectivity with WhatsApp Business API, Google Workspace sync, Razorpay & Stripe payment gateways, plus campaign telemetry metrics.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#fef08a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>WhatsApp Cloud API & Gmail bi-directional sync</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#fef08a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Razorpay & Stripe instant payment gateways</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#fef08a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px', color: '#34d399' }} />
+                <span>Marketing campaign Open %, Click %, & ROI telemetry</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 

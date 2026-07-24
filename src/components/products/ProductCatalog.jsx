@@ -9,12 +9,16 @@ import {
   FileText,
   AlertCircle,
   CheckCircle2,
-  Boxes
+  Boxes,
+  Edit3,
+  Trash2,
+  X
 } from 'lucide-react';
 
 const ProductCatalog = () => {
-  const { products, addProduct } = useCRM();
-  const [showAddModal, setShowAddModal] = useState(false);
+  const { products, addProduct, updateProduct, deleteProduct } = useCRM();
+  const [showModal, setShowModal] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
   const [formData, setFormData] = useState({
     sku: '',
     name: '',
@@ -26,22 +30,70 @@ const ProductCatalog = () => {
     description: ''
   });
 
+  const handleOpenAddModal = () => {
+    setEditingProductId(null);
+    setFormData({
+      sku: '',
+      name: '',
+      category: 'Hardware Servers',
+      unitPrice: 0,
+      taxRatePercent: 0,
+      stockCount: 0,
+      variantsStr: '',
+      description: ''
+    });
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (prod) => {
+    setEditingProductId(prod.id);
+    setFormData({
+      sku: prod.sku || '',
+      name: prod.name || '',
+      category: prod.category || 'Hardware Servers',
+      unitPrice: prod.unitPrice || 0,
+      taxRatePercent: prod.taxRatePercent || 0,
+      stockCount: prod.stockCount || 0,
+      variantsStr: (prod.variants || []).join(', '),
+      description: prod.description || ''
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteClick = async (prod) => {
+    if (window.confirm(`Are you sure you want to delete product "${prod.name}" (SKU: ${prod.sku}) from catalog?`)) {
+      if (deleteProduct) {
+        await deleteProduct(prod.id);
+      }
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name || !formData.sku) return;
 
-    addProduct({
+    const payload = {
       sku: formData.sku,
       name: formData.name,
       category: formData.category,
       unitPrice: parseFloat(formData.unitPrice) || 0,
       taxRatePercent: parseFloat(formData.taxRatePercent) || 0,
       stockCount: parseInt(formData.stockCount, 10) || 0,
-      variants: formData.variantsStr.split(',').map(v => v.trim()),
+      variants: formData.variantsStr ? formData.variantsStr.split(',').map(v => v.trim()).filter(Boolean) : ['Standard Edition'],
       description: formData.description || 'Enterprise grade product catalog item.'
-    });
+    };
 
-    setShowAddModal(false);
+    if (editingProductId) {
+      if (updateProduct) {
+        updateProduct(editingProductId, payload);
+      }
+    } else {
+      if (addProduct) {
+        addProduct(payload);
+      }
+    }
+
+    setShowModal(false);
   };
 
   return (
@@ -61,7 +113,7 @@ const ProductCatalog = () => {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={handleOpenAddModal}
           className="btn gradient-btn-primary"
           style={{ padding: '10px 18px', borderRadius: '10px' }}
         >
@@ -119,7 +171,7 @@ const ProductCatalog = () => {
               </div>
             </div>
 
-            {/* Stock Level Footer */}
+            {/* Stock Level & Action Footer */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
                 <Boxes style={{ width: '16px', height: '16px', color: (prod.stockCount || 0) < 50 ? '#fbbf24' : '#34d399' }} />
@@ -128,27 +180,55 @@ const ProductCatalog = () => {
                 </span>
               </div>
 
-              <button
-                onClick={() => alert(`Technical Spec Document for ${prod.name} downloaded.`)}
-                className="btn btn-secondary"
-                style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-              >
-                <FileText style={{ width: '14px', height: '14px' }} />
-                <span>Spec Doc</span>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => handleOpenEditModal(prod)}
+                  className="btn btn-secondary"
+                  style={{ padding: '5px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Edit3 style={{ width: '13px', height: '13px' }} />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={() => handleDeleteClick(prod)}
+                  title="Delete Product"
+                  style={{
+                    background: 'rgba(244, 63, 94, 0.15)',
+                    color: '#f43f5e',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    padding: '5px 8px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Trash2 style={{ width: '14px', height: '14px' }} />
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Add Product Modal */}
-      {showAddModal && (
+      {/* Add / Edit Product Modal */}
+      {showModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '6px' }}>Add Product to Catalog</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-              Configure product SKUs, pricing matrix, default tax rates, and inventory stock counts.
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>
+                  {editingProductId ? 'Edit Product SKU' : 'Add Product to Catalog'}
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  Configure product SKUs, pricing matrix, default tax rates, and inventory stock counts.
+                </p>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
 
             <form onSubmit={handleSubmit}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -186,6 +266,7 @@ const ProductCatalog = () => {
                     <option value="SaaS Licenses">SaaS Licenses</option>
                     <option value="IoT Hardware">IoT Hardware</option>
                     <option value="Point of Sale">Point of Sale</option>
+                    <option value="Software Services">Software Services</option>
                   </select>
                 </div>
 
@@ -243,11 +324,11 @@ const ProductCatalog = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
-                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => setShowModal(false)} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn gradient-btn-primary">
-                  Save Product to Catalog
+                  {editingProductId ? 'Update Product SKU' : 'Save Product to Catalog'}
                 </button>
               </div>
             </form>

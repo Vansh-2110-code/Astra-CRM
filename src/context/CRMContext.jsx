@@ -150,7 +150,18 @@ export const CRMProvider = ({ children }) => {
     const saved = localStorage.getItem('astra_clients');
     return saved ? JSON.parse(saved) : [];
   });
-  const [localProducts, setLocalProducts] = useState([]);
+  const [localProducts, setLocalProducts] = useState(() => {
+    const saved = localStorage.getItem('astra_products');
+    return saved ? JSON.parse(saved) : [
+      { id: "prod-001", clientId: "client-sanna", sku: "ASTRA-ENT-01", name: "Astra Enterprise CRM Suite", category: "SaaS Licenses", unitPrice: 24500, taxRatePercent: 18, stockCount: 150, variants: ["Annual License", "Lifetime Enterprise"], description: "Full omnichannel SaaS CRM suite with automated lead scoring and pipeline management." },
+      { id: "prod-002", clientId: "client-sanna", sku: "AI-BOT-V2", name: "AI Sales Automation Assistant", category: "SaaS Licenses", unitPrice: 12500, taxRatePercent: 18, stockCount: 85, variants: ["Pro Tier", "Unlimited AI"], description: "Autonomous lead nurturing bot with real-time intent analysis." },
+      { id: "prod-003", clientId: "client-sanna", sku: "HW-SERVER-4K", name: "OmniHub 4K Dedicated Server", category: "Hardware Servers", unitPrice: 48000, taxRatePercent: 18, stockCount: 24, variants: ["Rack Mount 1U", "Tower Chassis"], description: "Ultra-low latency edge server hardware pre-configured with Astra CRM gateway." }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('astra_products', JSON.stringify(localProducts));
+  }, [localProducts]);
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -679,9 +690,20 @@ export const CRMProvider = ({ children }) => {
     ? ticketsQuery.data
     : [];
 
-  const resolvedProducts = Array.isArray(productsQuery.data)
-    ? productsQuery.data
-    : (localProducts || []).filter(p => p.clientId === activeTenantId || activeTenantId === 'all');
+  const tenantLocalProducts = (localProducts || []).filter(p => p.clientId === activeTenantId || activeTenantId === 'all');
+
+  let resolvedProducts = [];
+  if (Array.isArray(productsQuery.data) && productsQuery.data.length > 0) {
+    const apiProds = productsQuery.data.map(p => {
+      const localMatch = localProducts.find(lp => lp.id === p.id || lp.sku === p.sku);
+      return localMatch ? { ...p, ...localMatch } : p;
+    });
+    const apiIds = new Set(apiProds.map(p => p.id));
+    const extraLocals = tenantLocalProducts.filter(lp => !apiIds.has(lp.id));
+    resolvedProducts = [...apiProds, ...extraLocals];
+  } else {
+    resolvedProducts = tenantLocalProducts;
+  }
 
   const resolvedIntegrations = Array.isArray(integrationsQuery.data) && integrationsQuery.data.length > 0
     ? integrationsQuery.data
@@ -986,6 +1008,22 @@ export const CRMProvider = ({ children }) => {
     }
   };
 
+  const handleUpdateProduct = async (id, updateData) => {
+    setLocalProducts(prev => prev.map(p => p.id === id ? { ...p, ...updateData } : p));
+    queryClient.setQueryData(['products', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(p => p.id === id ? { ...p, ...updateData } : p);
+    });
+  };
+
+  const handleDeleteProduct = async (id) => {
+    setLocalProducts(prev => prev.filter(p => p.id !== id));
+    queryClient.setQueryData(['products', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.filter(p => p.id !== id);
+    });
+  };
+
   return (
     <CRMContext.Provider value={{
       theme, setTheme,
@@ -1010,7 +1048,7 @@ export const CRMProvider = ({ children }) => {
         queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
       },
       leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
-      products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]),
+      products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]), updateProduct: handleUpdateProduct, deleteProduct: handleDeleteProduct,
       deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
         const target = resolvedQuotes.find(q => q.id === id);

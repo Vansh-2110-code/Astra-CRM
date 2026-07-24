@@ -96,15 +96,30 @@ export const CRMProvider = ({ children }) => {
   const [theme, setTheme] = useState('dark');
 
   // Local fallback states for mutations populated with pre-seeded data
-  const [localLeads, setLocalLeads] = useState([
-    { id: "lead-01", clientId: "client-001", name: "Dr. Aris Thorne", company: "BioGenetics Lab Solutions", email: "a.thorne@biogenetics.org", phone: "+1 (555) 234-5678", source: "Website Forms", assignedTo: "Alex Rivera", notes: "Requested cloud server architecture specs.", tags: ["Enterprise", "High Value"], status: "Lead", score: 94, potentialValue: 280000 },
-    { id: "lead-02", clientId: "client-001", name: "Eleanor Vance", company: "Apex Global Partner Ops", email: "eleanor@apex.io", phone: "+1 (555) 876-5432", source: "Referral", assignedTo: "Marcus Vance", notes: "Inbound partner referral for software rollout.", tags: ["Partner", "Urgent"], status: "Qualified", score: 85, potentialValue: 150000 },
-    { id: "lead-03", clientId: "client-001", name: "Michael Chang", company: "Horizon Retail Networks", email: "m.chang@horizon.com", phone: "+1 (555) 345-6789", source: "Social Media", assignedTo: "Sarah Jenkins", notes: "Interested in POS data integration.", tags: ["Retail", "Cloud"], status: "Need Analysis", score: 78, potentialValue: 95000 }
-  ]);
-  const [localDeals, setLocalDeals] = useState([
-    { id: "deal-501", clientId: "client-001", title: "Acme Corp Cloud Overhaul", company: "Acme Corporation", dealValue: 150000, probability: 75, stage: "Proposal Sent", pipelineId: "pipe-enterprise" },
-    { id: "deal-502", clientId: "client-001", title: "BioGenetics Lab CRM Rollout", company: "BioGenetics Lab Solutions", dealValue: 280000, probability: 90, stage: "Negotiation", pipelineId: "pipe-enterprise" }
-  ]);
+  const [localLeads, setLocalLeads] = useState(() => {
+    const saved = localStorage.getItem('astra_leads');
+    return saved ? JSON.parse(saved) : [
+      { id: "lead-01", clientId: "client-001", name: "Dr. Aris Thorne", company: "BioGenetics Lab Solutions", email: "a.thorne@biogenetics.org", phone: "+1 (555) 234-5678", source: "Website Forms", assignedTo: "Alex Rivera", notes: "Requested cloud server architecture specs.", tags: ["Enterprise", "High Value"], status: "Lead Intake", score: 94, potentialValue: 280000 },
+      { id: "lead-02", clientId: "client-001", name: "Eleanor Vance", company: "Apex Global Partner Ops", email: "eleanor@apex.io", phone: "+1 (555) 876-5432", source: "Referral", assignedTo: "Marcus Vance", notes: "Inbound partner referral for software rollout.", tags: ["Partner", "Urgent"], status: "Qualified", score: 85, potentialValue: 150000 },
+      { id: "lead-03", clientId: "client-001", name: "Michael Chang", company: "Horizon Retail Networks", email: "m.chang@horizon.com", phone: "+1 (555) 345-6789", source: "Social Media", assignedTo: "Sarah Jenkins", notes: "Interested in POS data integration.", tags: ["Retail", "Cloud"], status: "Need Analysis", score: 78, potentialValue: 95000 }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('astra_leads', JSON.stringify(localLeads));
+  }, [localLeads]);
+
+  const [localDeals, setLocalDeals] = useState(() => {
+    const saved = localStorage.getItem('astra_deals');
+    return saved ? JSON.parse(saved) : [
+      { id: "deal-501", clientId: "client-001", title: "Acme Corp Cloud Overhaul", company: "Acme Corporation", dealValue: 150000, probability: 75, stage: "Proposal Sent", pipelineId: "pipe-enterprise", owner: "Marcus Vance", expectedCloseDate: "2026-08-30" },
+      { id: "deal-502", clientId: "client-001", title: "BioGenetics Lab CRM Rollout", company: "BioGenetics Lab Solutions", dealValue: 280000, probability: 90, stage: "Negotiation", pipelineId: "pipe-enterprise", owner: "Sarah Jenkins", expectedCloseDate: "2026-09-15" }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('astra_deals', JSON.stringify(localDeals));
+  }, [localDeals]);
   const [localQuotes, setLocalQuotes] = useState(() => {
     const saved = localStorage.getItem('astra_quotes');
     return saved ? JSON.parse(saved) : [
@@ -615,9 +630,31 @@ export const CRMProvider = ({ children }) => {
     ? leadsQuery.data
     : (localLeads || []).filter(l => l.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedDeals = Array.isArray(dealsQuery.data)
+  const rawTenantDeals = Array.isArray(dealsQuery.data)
     ? dealsQuery.data
     : (localDeals || []).filter(d => d.clientId === activeTenantId || activeTenantId === 'all');
+
+  // Convert active leads into Kanban pipeline deals if not already present
+  const existingDealIds = new Set(rawTenantDeals.map(d => d.id));
+  const leadDeals = resolvedLeads
+    .filter(l => l.clientId === activeTenantId || activeTenantId === 'all')
+    .filter(l => !existingDealIds.has(l.id) && !existingDealIds.has(`deal-${l.id}`))
+    .map(l => ({
+      id: `deal-${l.id}`,
+      leadId: l.id,
+      clientId: l.clientId,
+      title: `${l.company || l.name} Opportunity`,
+      company: l.company || l.name,
+      contactName: l.name,
+      dealValue: parseFloat(l.potentialValue || 50000),
+      probability: l.status === 'Qualified' ? 40 : l.status === 'Won' ? 100 : 25,
+      stage: (l.status === 'Lead' || !l.status) ? 'Lead Intake' : l.status,
+      pipelineId: 'pipe-enterprise',
+      owner: l.assignedTo || currentUser?.name || 'Sanna Admin',
+      expectedCloseDate: l.expectedCloseDate || '2026-08-30'
+    }));
+
+  const resolvedDeals = [...rawTenantDeals, ...leadDeals];
 
   const resolvedQuotes = Array.isArray(quotesQuery.data)
     ? quotesQuery.data
@@ -759,9 +796,50 @@ export const CRMProvider = ({ children }) => {
   // MUTATIONS (Write Operations)
   const addLeadMutation = useMutation({
     mutationFn: (leadData) => api.post('/leads', leadData),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leads', activeTenantId] }),
+    onSuccess: (resData, newLead) => {
+      queryClient.invalidateQueries({ queryKey: ['leads', activeTenantId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
+      const leadId = resData?.id || `lead-${Date.now()}`;
+      const leadEntry = { id: leadId, clientId: activeTenantId, status: 'Lead Intake', ...newLead };
+      setLocalLeads(prev => [leadEntry, ...prev.filter(l => l.id !== leadId)]);
+
+      // Auto-create matching deal for Sales Pipeline Kanban
+      const dealEntry = {
+        id: `deal-${leadId}`,
+        leadId,
+        clientId: activeTenantId,
+        title: `${newLead.company || newLead.name} Opportunity`,
+        company: newLead.company || newLead.name,
+        contactName: newLead.name,
+        dealValue: parseFloat(newLead.potentialValue || 50000),
+        probability: 25,
+        stage: 'Lead Intake',
+        pipelineId: 'pipe-enterprise',
+        owner: newLead.assignedTo || currentUser?.name || 'Sanna Admin',
+        expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+      };
+      setLocalDeals(prev => [dealEntry, ...prev.filter(d => d.id !== dealEntry.id)]);
+    },
     onError: (err, newLead) => {
-      setLocalLeads(prev => [{ id: `lead-${Date.now()}`, clientId: activeTenantId, ...newLead }, ...prev]);
+      const leadId = `lead-${Date.now()}`;
+      const leadEntry = { id: leadId, clientId: activeTenantId, status: 'Lead Intake', ...newLead };
+      setLocalLeads(prev => [leadEntry, ...prev]);
+
+      const dealEntry = {
+        id: `deal-${leadId}`,
+        leadId,
+        clientId: activeTenantId,
+        title: `${newLead.company || newLead.name} Opportunity`,
+        company: newLead.company || newLead.name,
+        contactName: newLead.name,
+        dealValue: parseFloat(newLead.potentialValue || 50000),
+        probability: 25,
+        stage: 'Lead Intake',
+        pipelineId: 'pipe-enterprise',
+        owner: newLead.assignedTo || currentUser?.name || 'Sanna Admin',
+        expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+      };
+      setLocalDeals(prev => [dealEntry, ...prev]);
     }
   });
 
@@ -841,13 +919,13 @@ export const CRMProvider = ({ children }) => {
         queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
       },
       leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: (id, status) => {
-        const target = resolvedLeads.find(l => l.id === id);
-        if (target) target.status = status;
+        setLocalLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+        setLocalDeals(prev => prev.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage: status } : d));
       },
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]),
       deals: resolvedDeals, updateDealStage: (id, stage) => {
-        const target = resolvedDeals.find(d => d.id === id);
-        if (target) target.stage = stage;
+        setLocalDeals(prev => prev.map(d => d.id === id ? { ...d, stage } : d));
+        setLocalLeads(prev => prev.map(l => (l.id === id || `deal-${l.id}` === id) ? { ...l, status: stage } : l));
       }, createDeal: createDealMutation.mutateAsync,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
         const target = resolvedQuotes.find(q => q.id === id);

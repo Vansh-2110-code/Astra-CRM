@@ -54,8 +54,34 @@ async function seedDatabase() {
           status: "Active",
           maxSeats: 10,
           currency: "EUR (€)"
+        },
+        {
+          id: "client-sanna",
+          name: "Sanna Innovations",
+          subdomain: "sanna",
+          logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&auto=format&fit=crop&q=80",
+          industry: "Technology & Innovation Services",
+          plan: "Enterprise",
+          status: "Active",
+          maxSeats: 50,
+          currency: "INR (₹)"
         }
       ]);
+    } else {
+      // Ensure Sanna Innovations tenant exists even if other tenants were already seeded
+      const [sannaTenant] = await Tenant.findOrCreate({
+        where: { id: 'client-sanna' },
+        defaults: {
+          name: 'Sanna Innovations',
+          subdomain: 'sanna',
+          logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&auto=format&fit=crop&q=80',
+          industry: 'Technology & Innovation Services',
+          plan: 'Enterprise',
+          status: 'Active',
+          maxSeats: 50,
+          currency: 'INR (₹)'
+        }
+      });
     }
 
     // 3. Check if Roles exist
@@ -91,8 +117,27 @@ async function seedDatabase() {
 
         // Tenant 3 (Vanguard Industrial)
         { id: "EMP-006", clientId: "client-003", name: "Heinrich Muller", email: "vanguard.admin@vanguard.com", designation: "General Manager", roleId: "role-admin", baseSalary: 88000, passwordHash: defaultPasswordHash, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" },
-        { id: "EMP-007", clientId: "client-003", name: "Klaus Schmidt", email: "industrial.exec@vanguard.com", designation: "Industrial Machinery AE", roleId: "role-exec", baseSalary: 58000, passwordHash: defaultPasswordHash, avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=80" }
+        { id: "EMP-007", clientId: "client-003", name: "Klaus Schmidt", email: "industrial.exec@vanguard.com", designation: "Industrial Machinery AE", roleId: "role-exec", baseSalary: 58000, passwordHash: defaultPasswordHash, avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=80" },
+
+        // Tenant 4 (Sanna Innovations)
+        { id: "EMP-SANNA-001", clientId: "client-sanna", name: "Sanna Admin", email: "admin@sannainnovations.com", designation: "Organization Administrator", roleId: "role-admin", baseSalary: 80000, passwordHash: defaultPasswordHash, avatar: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&auto=format&fit=crop&q=80" }
       ], { ignoreDuplicates: true });
+    } else {
+      // Always ensure Sanna admin exists even on re-runs
+      await Employee.findOrCreate({
+        where: { email: 'admin@sannainnovations.com' },
+        defaults: {
+          id: 'EMP-SANNA-001',
+          clientId: 'client-sanna',
+          name: 'Sanna Admin',
+          email: 'admin@sannainnovations.com',
+          designation: 'Organization Administrator',
+          roleId: 'role-admin',
+          baseSalary: 80000,
+          passwordHash: defaultPasswordHash,
+          avatar: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&auto=format&fit=crop&q=80'
+        }
+      });
     }
 
     // 5. Seed Leads across all client accounts

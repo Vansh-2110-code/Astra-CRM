@@ -14,14 +14,24 @@ import {
 } from 'lucide-react';
 
 const TaskBoard = () => {
-  const { tasks, addTask, toggleTaskStatus } = useCRM();
+  const { tasks, addTask, toggleTaskStatus, employees = [], currentUser } = useCRM();
+
+  // Get list of sales reps/employees for the active organization
+  const availableReps = employees.length > 0 
+    ? employees.map(e => e.name)
+    : [currentUser?.name || 'Unassigned'];
+    
+  if (currentUser?.name && !availableReps.includes(currentUser.name)) {
+    availableReps.unshift(currentUser.name);
+  }
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     type: 'Call',
     dueDate: '',
     priority: 'Medium',
-    assignedTo: '',
+    assignedTo: availableReps[0] || '',
     relatedEntity: ''
   });
 
@@ -238,9 +248,9 @@ const TaskBoard = () => {
                     onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
                     className="form-select"
                   >
-                    <option value="Alex Rivera">Alex Rivera</option>
-                    <option value="Jessica Wu">Jessica Wu</option>
-                    <option value="Marcus Vance">Marcus Vance</option>
+                    {availableReps.map(repName => (
+                      <option key={repName} value={repName}>{repName}</option>
+                    ))}
                   </select>
                 </div>
               </div>

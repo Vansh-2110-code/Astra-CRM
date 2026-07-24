@@ -645,7 +645,8 @@ export const CRMProvider = ({ children }) => {
     { id: "EMP-003", clientId: "client-001", name: "Alex Rivera", email: "alex.rivera@sales.apex.io", designation: "Senior Account Executive", roleId: "role-exec", baseSalary: 55000, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" },
     { id: "EMP-008", clientId: "client-001", name: "Elena Rostova", email: "elena.rostova@hr.apex.io", designation: "Head of Human Resources", roleId: "role-hr", baseSalary: 68000, avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&auto=format&fit=crop&q=80" },
     { id: "EMP-009", clientId: "client-001", name: "Vikram Patel", email: "vikram.patel@ops.apex.io", designation: "Director of Operations & Support", roleId: "role-ops", baseSalary: 72000, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-010", clientId: "client-001", name: "Dr. Aris Thorne", email: "a.thorne@biogenetics.org", designation: "CTO, BioGenetics Lab Solutions", roleId: "role-customer", baseSalary: 85000, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" }
+    { id: "EMP-010", clientId: "client-001", name: "Dr. Aris Thorne", email: "a.thorne@biogenetics.org", designation: "CTO, BioGenetics Lab Solutions", roleId: "role-customer", baseSalary: 85000, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" },
+    { id: "EMP-SANNA-001", clientId: "client-sanna", name: "Sanna Admin", email: "admin@sannainnovations.com", designation: "Organization Administrator", roleId: "role-admin", baseSalary: 80000, avatar: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&auto=format&fit=crop&q=80" }
   ]);
 
   const createEmployeeMutation = useMutation({

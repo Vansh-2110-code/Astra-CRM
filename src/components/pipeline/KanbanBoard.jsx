@@ -24,7 +24,17 @@ const STAGES = [
 ];
 
 const KanbanBoard = () => {
-  const { deals, updateDealStage, createDeal } = useCRM();
+  const { deals, updateDealStage, createDeal, employees = [], currentUser } = useCRM();
+
+  // Get list of sales reps/employees for the active organization
+  const availableReps = employees.length > 0 
+    ? employees.map(e => e.name)
+    : [currentUser?.name || 'Unassigned'];
+    
+  if (currentUser?.name && !availableReps.includes(currentUser.name)) {
+    availableReps.unshift(currentUser.name);
+  }
+
   const [activePipeline, setActivePipeline] = useState('pipe-enterprise');
   const [showAddDealModal, setShowAddDealModal] = useState(false);
   const [newDealForm, setNewDealForm] = useState({
@@ -33,7 +43,7 @@ const KanbanBoard = () => {
     contactName: '',
     dealValue: 0,
     expectedCloseDate: '',
-    owner: '',
+    owner: availableReps[0] || '',
     competitors: '',
     productsInterested: ''
   });
@@ -322,9 +332,9 @@ const KanbanBoard = () => {
                     onChange={(e) => setNewDealForm({ ...newDealForm, owner: e.target.value })}
                     className="form-select"
                   >
-                    <option value="Alex Rivera">Alex Rivera</option>
-                    <option value="Jessica Wu">Jessica Wu</option>
-                    <option value="Marcus Vance">Marcus Vance</option>
+                    {availableReps.map(repName => (
+                      <option key={repName} value={repName}>{repName}</option>
+                    ))}
                   </select>
                 </div>
 

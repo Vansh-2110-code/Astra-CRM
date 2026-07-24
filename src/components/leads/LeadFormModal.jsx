@@ -20,7 +20,7 @@ const LeadFormModal = ({ onClose }) => {
     email: '',
     phone: '',
     source: 'Website Forms',
-    productNeeded: 'Astra CRM Enterprise Suite',
+    productNeeded: '',
     potentialValue: 0,
     assignedTo: availableReps[0] || '',
     notes: '',
@@ -37,7 +37,7 @@ const LeadFormModal = ({ onClose }) => {
       email: formData.email,
       phone: formData.phone || '',
       source: formData.source,
-      productNeeded: formData.productNeeded || 'Astra CRM Enterprise Suite',
+      productNeeded: formData.productNeeded || '',
       potentialValue: parseFloat(formData.potentialValue) || 0,
       assignedTo: formData.assignedTo,
       notes: formData.notes || '',
@@ -122,20 +122,13 @@ const LeadFormModal = ({ onClose }) => {
 
             <div className="form-group">
               <label className="form-label">Product Needed / Interested</label>
-              <select
+              <input
+                type="text"
+                placeholder="e.g. Cloud Server, POS Hardware, AI Suite..."
                 value={formData.productNeeded}
                 onChange={(e) => setFormData({ ...formData, productNeeded: e.target.value })}
-                className="form-select"
-              >
-                <option value="Astra CRM Enterprise Suite">Astra CRM Enterprise Suite</option>
-                <option value="AI Sales Automation Module">AI Sales Automation Module</option>
-                <option value="Cloud Server Infrastructure">Cloud Server Infrastructure</option>
-                <option value="Omnichannel Communication Hub">Omnichannel Communication Hub</option>
-                <option value="Custom Software Development">Custom Software Development</option>
-                {(products || []).map(p => (
-                  <option key={p.id || p.name} value={p.name}>{p.name}</option>
-                ))}
-              </select>
+                className="form-input"
+              />
             </div>
 
             <div className="form-group">

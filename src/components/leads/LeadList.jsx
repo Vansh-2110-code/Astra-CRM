@@ -162,10 +162,12 @@ const LeadList = () => {
                       <span>•</span>
                       <span><Mail style={{ width: '12px', height: '12px', display: 'inline' }} /> {lead.email}</span>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontWeight: '700' }}>
-                      <Package style={{ width: '12px', height: '12px' }} />
-                      <span>Product: {lead.productNeeded || 'Astra CRM Enterprise Suite'}</span>
-                    </div>
+                    {lead.productNeeded && (
+                      <div style={{ fontSize: '0.75rem', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontWeight: '700' }}>
+                        <Package style={{ width: '12px', height: '12px' }} />
+                        <span>Product: {lead.productNeeded}</span>
+                      </div>
+                    )}
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -492,7 +492,34 @@ export const CRMProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       if (userData.signupType === 'join') {
-        const targetTenantId = userData.tenantId || 'client-001';
+        const searchName = (userData.company || userData.tenantId || '').trim();
+        if (!searchName) {
+          throw new Error('Please enter your Company Name or Organization ID to join.');
+        }
+
+        const existingClient = (localClients || []).find(c => 
+          c.name.toLowerCase() === searchName.toLowerCase() ||
+          c.id.toLowerCase() === searchName.toLowerCase() ||
+          (c.subdomain && c.subdomain.toLowerCase() === searchName.toLowerCase())
+        );
+
+        let targetTenantId = existingClient ? existingClient.id : `client-${searchName.toLowerCase().replace(/[^a-z0-9]/g, '') || Date.now()}`;
+        
+        if (!existingClient) {
+          const newCompanyObj = {
+            id: targetTenantId,
+            name: searchName,
+            subdomain: searchName.toLowerCase().replace(/[^a-z0-9]/g, ''),
+            logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+            industry: 'Enterprise Services',
+            plan: 'Enterprise',
+            status: 'Active',
+            maxSeats: 50,
+            currency: 'USD ($)'
+          };
+          setLocalClients(prev => [...prev, newCompanyObj]);
+        }
+
         const newEmpUser = {
           id: `EMP-${Date.now().toString().slice(-4)}`,
           name: userData.name,

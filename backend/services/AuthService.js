@@ -121,17 +121,45 @@ class AuthService {
     let userDesignation = 'Super Admin / Org Admin';
 
     if (signupType === 'join') {
+      const searchKey = (company || userTenantId || '').trim().toLowerCase();
+      if (!searchKey) {
+        throw new Error('Please enter your Company Name or Organization ID to join.');
+      }
+
       let targetTenant = null;
-      if (userTenantId) {
-        targetTenant = await TenantRepository.findById(userTenantId);
-      }
-      if (!targetTenant && company) {
-        const allTenants = await TenantRepository.findAll();
-        targetTenant = allTenants.find(t => t.name.toLowerCase() === company.toLowerCase() || t.id === company);
-      }
+      const allTenants = await TenantRepository.findAll();
+      
+      // 1. Exact match by Tenant ID, Name, or Subdomain
+      targetTenant = allTenants.find(t => 
+        t.id.toLowerCase() === searchKey ||
+        t.name.toLowerCase() === searchKey ||
+        (t.subdomain && t.subdomain.toLowerCase() === searchKey)
+      );
+
+      // 2. Partial match by Name
       if (!targetTenant) {
-        const allTenants = await TenantRepository.findAll();
-        targetTenant = allTenants[0];
+        targetTenant = allTenants.find(t => 
+          t.name.toLowerCase().includes(searchKey) ||
+          searchKey.includes(t.name.toLowerCase())
+        );
+      }
+
+      // 3. If no existing tenant match, auto-provision tenant specifically for this company name
+      if (!targetTenant) {
+        const newTenantId = `client-${Date.now().toString().slice(-4)}`;
+        const subdomain = searchKey.replace(/[^a-z0-9]/g, '') || `org-${Date.now()}`;
+        
+        targetTenant = await TenantRepository.create({
+          id: newTenantId,
+          name: company || userTenantId,
+          subdomain,
+          logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+          industry: 'Enterprise Services',
+          plan: 'Enterprise',
+          status: 'Active',
+          maxSeats: 50,
+          currency: 'USD ($)'
+        });
       }
 
       tenantId = targetTenant.id;

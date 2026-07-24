@@ -39,12 +39,14 @@ const AuthPage = ({ onBackToLanding }) => {
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password || !name) return;
-    if (signupType === 'new' && !company) return;
+    if (!email || !password || !name || !company) {
+      setAuthError('Please fill out all required fields, including your Company Name.');
+      return;
+    }
     setAuthError('');
     setLoading(true);
     try {
-      await signup({ email, password, name, company, signupType, tenantId: selectedTenantId });
+      await signup({ email, password, name, company, signupType, tenantId: company });
     } catch (err) {
       setAuthError(err.message || 'Registration failed');
     } finally {
@@ -327,27 +329,32 @@ const AuthPage = ({ onBackToLanding }) => {
               </div>
             ) : (
               <div className="form-group">
-                <label className="form-label">Select Onboarded Company to Join</label>
+                <label className="form-label">Enter Your Company Name or Organization ID</label>
                 <div style={{ position: 'relative' }}>
                   <Building style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#10b981' }} />
-                  <select
-                    value={selectedTenantId}
-                    onChange={(e) => setSelectedTenantId(e.target.value)}
-                    className="form-select"
-                    style={{ paddingLeft: '38px', width: '100%', color: '#34d399', fontWeight: '700' }}
-                  >
+                  <input
+                    type="text"
+                    required
+                    list="onboarded-companies-list"
+                    placeholder="Type your Company Name (e.g. Apex Global Tech or client-001)"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '38px', width: '100%', borderColor: '#10b981', color: '#34d399', fontWeight: '700' }}
+                  />
+                  <datalist id="onboarded-companies-list">
                     {(allClients || []).map(client => (
-                      <option key={client.id} value={client.id}>
-                        {client.name} ({client.subdomain || client.id})
+                      <option key={client.id} value={client.name}>
+                        {client.name} ({client.id})
                       </option>
                     ))}
-                    <option value="client-001">Apex Global Tech (client-001)</option>
-                    <option value="client-002">Nexus Electronics (client-002)</option>
-                    <option value="client-003">Vanguard Industrial (client-003)</option>
-                  </select>
+                    <option value="Apex Global Tech" />
+                    <option value="Nexus Electronics" />
+                    <option value="Vanguard Industrial" />
+                  </datalist>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  You will register as a Sales Team Member in this company workspace.
+                <div style={{ fontSize: '0.72rem', color: '#60a5fa', marginTop: '4px', fontWeight: '600' }}>
+                  🔒 Type your onboarded company's exact name or Organization ID. You will be registered strictly inside your company's isolated workspace.
                 </div>
               </div>
             )}

@@ -471,7 +471,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
                     <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#fff' }}>Enterprise Sales Pipeline Kanban</h3>
                     <span className="badge badge-purple">Weighted Forecast: $695,000</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                  <div className="mockup-kanban-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                     <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: '800', color: '#60a5fa', marginBottom: '10px' }}>QUALIFIED (75% Win)</div>
                       <div className="glass-card" style={{ padding: '12px', marginBottom: '10px', background: 'var(--bg-secondary)' }}>
@@ -542,7 +542,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </section>
 
       {/* ENTERPRISE CORE FEATURES SUITE SECTION */}
-      <section id="features" style={{
+      <section id="features" className="landing-section" style={{
         position: 'relative',
         zIndex: 10,
         padding: '100px 48px 60px 48px',
@@ -590,9 +590,9 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </p>
 
         {/* Feature Cards Grid (2x3 Layout) */}
-        <div style={{
+        <div className="landing-features-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '28px',
           textAlign: 'left'
         }}>
@@ -781,7 +781,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </section>
 
       {/* 1-CLICK INTERACTIVE DEMO ACCOUNTS SECTION */}
-      <section id="demo-roles" style={{
+      <section id="demo-roles" className="landing-section" style={{
         position: 'relative',
         zIndex: 10,
         padding: '80px 48px',
@@ -828,9 +828,9 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
           Select any of the 6 core system access roles below to instantly test Astra CRM under that specific persona. Each account comes pre-seeded with rich domain records merged into the workspace.
         </p>
 
-        <div style={{
+        <div className="landing-roles-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '24px',
           textAlign: 'left'
         }}>
@@ -939,7 +939,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </section>
 
       {/* ZERO-TRUST SECURITY & AUDIT VAULT SECTION */}
-      <section id="architecture" style={{
+      <section id="architecture" className="landing-section" style={{
         position: 'relative',
         zIndex: 10,
         padding: '80px 48px',
@@ -961,7 +961,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
 
         {/* Security Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginBottom: '40px' }}>
+        <div className="landing-security-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginBottom: '40px' }}>
           
           <div className="glass-card" style={{ padding: '32px', borderRadius: '20px', borderLeft: '4px solid #6366f1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
@@ -1043,7 +1043,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </section>
 
       {/* DEDICATED CUSTOMER SELF-SERVICE PORTAL SECTION */}
-      <section id="portal" style={{
+      <section id="portal" className="landing-section" style={{
         position: 'relative',
         zIndex: 10,
         padding: '80px 48px',
@@ -1063,7 +1063,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
 
         {/* Portal Feature Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '50px' }}>
+        <div className="landing-portal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '50px' }}>
           
           <div className="glass-card" style={{ padding: '32px', borderRadius: '24px', borderTop: '4px solid #10b981' }}>
             <div style={{ background: 'rgba(16, 185, 129, 0.15)', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
@@ -1098,11 +1098,11 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
 
         {/* Interactive Customer Login Callout Banner */}
-        <div className="glass-panel" style={{
+        <div className="glass-panel landing-banner-flex" style={{
           padding: '36px',
           borderRadius: '24px',
           display: 'flex',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           alignItems: 'center',
           background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(56, 189, 248, 0.08) 100%)',
           border: '1px solid rgba(16, 185, 129, 0.3)'
@@ -1127,7 +1127,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </section>
 
       {/* PRICING MATRIX SECTION */}
-      <section id="pricing" style={{
+      <section id="pricing" className="landing-section" style={{
         position: 'relative',
         zIndex: 10,
         padding: '80px 48px',
@@ -1168,7 +1168,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
 
         {/* Pricing Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
+        <div className="landing-pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
           
           {/* Starter Plan */}
           <div className="glass-card" style={{ padding: '36px', borderRadius: '24px', textAlign: 'left', borderTop: '4px solid #a855f7' }}>
@@ -1271,7 +1271,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </section>
 
       {/* FOOTER */}
-      <footer style={{
+      <footer className="landing-footer" style={{
         position: 'relative',
         zIndex: 10,
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
@@ -1279,7 +1279,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         maxWidth: '1280px',
         margin: '0 auto',
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

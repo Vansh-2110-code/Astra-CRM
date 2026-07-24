@@ -452,29 +452,58 @@ body {
     min-width: 140px !important;
   }
 
-  /* ── LANDING — Feature Grid ── */
-  .landing-features-grid {
+  /* ── LANDING — Section Padding & Titles ── */
+  .landing-section {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+    border-radius: 16px !important;
+  }
+
+  .landing-section h2,
+  .landing-section-title {
+    font-size: clamp(1.5rem, 6vw, 2.2rem) !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .landing-section p {
+    font-size: 0.95rem !important;
+  }
+
+  /* ── LANDING — Grid Layouts (Single Column on Mobile) ── */
+  .landing-features-grid,
+  .landing-security-grid,
+  .landing-portal-grid,
+  .landing-pricing-grid,
+  .landing-roles-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
   }
 
-  /* ── LANDING — Pricing Grid ── */
-  .landing-pricing-grid {
+  .mockup-kanban-grid {
     grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* ── LANDING — Banners & Footer ── */
+  .landing-banner-flex {
+    flex-direction: column !important;
+    align-items: flex-start !important;
     gap: 20px !important;
-    padding: 0 16px !important;
+    padding: 20px 16px !important;
   }
 
-  /* ── LANDING — Section Padding ── */
-  .landing-section {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    padding-top: 60px !important;
-    padding-bottom: 60px !important;
+  .landing-banner-flex button {
+    width: 100% !important;
+    justify-content: center !important;
   }
 
-  .landing-section h2 {
-    font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
+  .landing-footer {
+    flex-direction: column !important;
+    gap: 16px !important;
+    text-align: center !important;
+    padding: 24px 16px !important;
   }
 
   /* ── LANDING — Dashboard Mockup ── */
@@ -483,6 +512,11 @@ body {
     margin: 0 auto !important;
     width: 100% !important;
     max-width: 100% !important;
+  }
+
+  /* ── Cards Padding ── */
+  .glass-card {
+    padding: 20px 16px !important;
   }
 
   /* ── Modals ── */

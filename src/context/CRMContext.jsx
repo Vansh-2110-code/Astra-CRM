@@ -491,6 +491,31 @@ export const CRMProvider = ({ children }) => {
       queryClient.clear();
       return { success: true };
     } catch (error) {
+      if (userData.signupType === 'join') {
+        const targetTenantId = userData.tenantId || 'client-001';
+        const newEmpUser = {
+          id: `EMP-${Date.now().toString().slice(-4)}`,
+          name: userData.name,
+          email: userData.email,
+          designation: 'Sales Representative',
+          role: 'Sales Executive',
+          roleId: 'role-exec',
+          tenantId: targetTenantId,
+          baseSalary: 55000,
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+        };
+        const mockToken = `token_join_${Date.now()}`;
+        sessionStorage.setItem('astra_token', mockToken);
+        sessionStorage.setItem('astra_user', JSON.stringify(newEmpUser));
+        sessionStorage.setItem('crm_active_tenant', targetTenantId);
+
+        setLocalEmployees(prev => [newEmpUser, ...prev]);
+        setCurrentUser(newEmpUser);
+        setIsAuthenticated(true);
+        setActiveTenantId(targetTenantId);
+        queryClient.clear();
+        return { success: true, isDemo: true };
+      }
       const message = error.response?.data?.error || error.message || 'Signup failed';
       throw new Error(message);
     }

@@ -106,9 +106,9 @@ class AuthService {
   }
 
   async signup(userData) {
-    const { email, password, name, company } = userData;
-    if (!email || !password || !name || !company) {
-      throw new Error('All fields (name, company, email, password) are required.');
+    const { email, password, name, company, signupType, tenantId: userTenantId } = userData;
+    if (!email || !password || !name) {
+      throw new Error('All fields (name, email, password) are required.');
     }
 
     const existingEmployee = await EmployeeRepository.findByEmail(email);
@@ -116,23 +116,48 @@ class AuthService {
       throw new Error('An account with this email address already exists. Please log in.');
     }
 
-    // 1. Create new Tenant ID & record
-    const tenantId = `client-${Date.now().toString().slice(-4)}`;
-    const subdomain = company.toLowerCase().replace(/[^a-z0-9]/g, '') || `org-${Date.now()}`;
+    let tenantId;
+    let userRole = 'role-admin';
+    let userDesignation = 'Super Admin / Org Admin';
 
-    await TenantRepository.create({
-      id: tenantId,
-      name: company,
-      subdomain,
-      logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
-      industry: 'Enterprise Services',
-      plan: 'Enterprise',
-      status: 'Active',
-      maxSeats: 50,
-      currency: 'USD ($)'
-    });
+    if (signupType === 'join') {
+      let targetTenant = null;
+      if (userTenantId) {
+        targetTenant = await TenantRepository.findById(userTenantId);
+      }
+      if (!targetTenant && company) {
+        const allTenants = await TenantRepository.findAll();
+        targetTenant = allTenants.find(t => t.name.toLowerCase() === company.toLowerCase() || t.id === company);
+      }
+      if (!targetTenant) {
+        const allTenants = await TenantRepository.findAll();
+        targetTenant = allTenants[0];
+      }
 
-    // 2. Hash Password & Create Primary Admin Employee
+      tenantId = targetTenant.id;
+      userRole = 'role-exec';
+      userDesignation = 'Sales Representative';
+    } else {
+      if (!company) {
+        throw new Error('Organization name is required to register a new company.');
+      }
+      tenantId = `client-${Date.now().toString().slice(-4)}`;
+      const subdomain = company.toLowerCase().replace(/[^a-z0-9]/g, '') || `org-${Date.now()}`;
+
+      await TenantRepository.create({
+        id: tenantId,
+        name: company,
+        subdomain,
+        logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+        industry: 'Enterprise Services',
+        plan: 'Enterprise',
+        status: 'Active',
+        maxSeats: 50,
+        currency: 'USD ($)'
+      });
+    }
+
+    // Hash Password & Create Employee Profile
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     const empId = `EMP-${Date.now().toString().slice(-4)}`;
@@ -142,10 +167,11 @@ class AuthService {
       clientId: tenantId,
       name,
       email,
-      designation: 'Super Admin / Org Admin',
-      roleId: 'role-admin',
+      designation: userDesignation,
+      roleId: userRole,
       passwordHash,
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80'
+      baseSalary: signupType === 'join' ? 55000 : 95000,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
     });
 
     // 3. Generate Auth Tokens

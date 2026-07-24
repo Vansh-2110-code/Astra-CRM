@@ -3,8 +3,10 @@ import { useCRM, DEMO_ACCOUNTS } from '../../context/CRMContext';
 import { Sparkles, ShieldCheck, Mail, Lock, User, Building, ArrowRight, CheckCircle2, Key, Zap } from 'lucide-react';
 
 const AuthPage = ({ onBackToLanding }) => {
-  const { login, signup } = useCRM();
+  const { login, signup, allClients } = useCRM();
   const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'forgot'
+  const [signupType, setSignupType] = useState('new'); // 'new' | 'join'
+  const [selectedTenantId, setSelectedTenantId] = useState('client-001');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -37,11 +39,12 @@ const AuthPage = ({ onBackToLanding }) => {
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password || !name || !company) return;
+    if (!email || !password || !name) return;
+    if (signupType === 'new' && !company) return;
     setAuthError('');
     setLoading(true);
     try {
-      await signup({ email, password, name, company });
+      await signup({ email, password, name, company, signupType, tenantId: selectedTenantId });
     } catch (err) {
       setAuthError(err.message || 'Registration failed');
     } finally {
@@ -264,6 +267,32 @@ const AuthPage = ({ onBackToLanding }) => {
         {/* SIGNUP FORM */}
         {mode === 'signup' && (
           <form onSubmit={handleSignupSubmit}>
+            {/* Registration Mode Switcher */}
+            <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-primary)', padding: '4px', borderRadius: '10px', marginBottom: '16px', border: '1px solid var(--border-color)' }}>
+              <button
+                type="button"
+                onClick={() => setSignupType('new')}
+                style={{
+                  flex: 1, padding: '8px 6px', borderRadius: '8px', border: 'none', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer',
+                  background: signupType === 'new' ? 'var(--accent-blue)' : 'transparent',
+                  color: signupType === 'new' ? '#fff' : 'var(--text-muted)'
+                }}
+              >
+                🏢 New Company
+              </button>
+              <button
+                type="button"
+                onClick={() => setSignupType('join')}
+                style={{
+                  flex: 1, padding: '8px 6px', borderRadius: '8px', border: 'none', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer',
+                  background: signupType === 'join' ? '#10b981' : 'transparent',
+                  color: signupType === 'join' ? '#fff' : 'var(--text-muted)'
+                }}
+              >
+                👥 Join Existing
+              </button>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Full Name</label>
               <div style={{ position: 'relative' }}>
@@ -271,7 +300,7 @@ const AuthPage = ({ onBackToLanding }) => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Sarah Jenkins"
+                  placeholder="e.g. Alex Rivera"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="form-input"
@@ -280,21 +309,48 @@ const AuthPage = ({ onBackToLanding }) => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Organization Name</label>
-              <div style={{ position: 'relative' }}>
-                <Building style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Apex Global Tech"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '38px', width: '100%' }}
-                />
+            {signupType === 'new' ? (
+              <div className="form-group">
+                <label className="form-label">New Organization Name</label>
+                <div style={{ position: 'relative' }}>
+                  <Building style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: 'var(--text-muted)' }} />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Apex Global Tech"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '38px', width: '100%' }}
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="form-group">
+                <label className="form-label">Select Onboarded Company to Join</label>
+                <div style={{ position: 'relative' }}>
+                  <Building style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#10b981' }} />
+                  <select
+                    value={selectedTenantId}
+                    onChange={(e) => setSelectedTenantId(e.target.value)}
+                    className="form-select"
+                    style={{ paddingLeft: '38px', width: '100%', color: '#34d399', fontWeight: '700' }}
+                  >
+                    {(allClients || []).map(client => (
+                      <option key={client.id} value={client.id}>
+                        {client.name} ({client.subdomain || client.id})
+                      </option>
+                    ))}
+                    <option value="client-001">Apex Global Tech (client-001)</option>
+                    <option value="client-002">Nexus Electronics (client-002)</option>
+                    <option value="client-003">Vanguard Industrial (client-003)</option>
+                  </select>
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  You will register as a Sales Team Member in this company workspace.
+                </div>
+              </div>
+            )}
 
             <div className="form-group">
               <label className="form-label">Work Email Address</label>

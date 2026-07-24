@@ -49,6 +49,37 @@ class LeadService {
 
     return lead;
   }
+
+  async updateLead(tenantId, id, updateData) {
+    const { status, name, company, email, phone, source, assignedTo, notes, tags, potentialValue } = updateData;
+
+    let lead = await LeadRepository.findOne({ where: { id, clientId: tenantId } });
+    if (!lead) {
+      // Try matching by id strip lead- prefix or email
+      const cleanId = id.replace(/^lead-/, '');
+      lead = await LeadRepository.findOne({ where: { id: cleanId, clientId: tenantId } }) ||
+             await LeadRepository.findOne({ where: { email: cleanId, clientId: tenantId } });
+    }
+
+    if (!lead) {
+      throw new Error("Lead not found.");
+    }
+
+    const updates = {};
+    if (status !== undefined) updates.status = status;
+    if (name !== undefined) updates.name = name;
+    if (company !== undefined) updates.company = company;
+    if (email !== undefined) updates.email = email;
+    if (phone !== undefined) updates.phone = phone;
+    if (source !== undefined) updates.source = source;
+    if (assignedTo !== undefined) updates.assignedTo = assignedTo;
+    if (notes !== undefined) updates.notes = notes;
+    if (tags !== undefined) updates.tags = tags;
+    if (potentialValue !== undefined) updates.potentialValue = parseFloat(potentialValue);
+
+    await lead.update(updates);
+    return lead;
+  }
 }
 
 module.exports = new LeadService();

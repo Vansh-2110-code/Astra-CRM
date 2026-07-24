@@ -28,3 +28,21 @@ exports.createLead = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.updateLead = async (req, res) => {
+  try {
+    const tenantId = req.tenant.id;
+    const { id } = req.params;
+    const lead = await LeadService.updateLead(tenantId, id, req.body);
+
+    // Invalidate Redis Query Cache
+    await invalidateCache(tenantId, 'leads');
+
+    // Emit live real-time event to all connected sockets in this tenant room
+    emitToTenant(tenantId, 'lead_updated', lead);
+
+    res.json(lead);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};

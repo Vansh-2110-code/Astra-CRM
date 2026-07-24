@@ -6,5 +6,6 @@ const { routeCache } = require('../middleware/cacheMiddleware');
 
 router.get('/', checkFeature('leads'), routeCache('leads'), leadController.getLeads);
 router.post('/', checkFeature('leads'), leadController.createLead);
+router.put('/:id', checkFeature('leads'), leadController.updateLead);
 
 module.exports = router;

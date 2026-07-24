@@ -626,9 +626,20 @@ export const CRMProvider = ({ children }) => {
   };
 
   // Resolved Resource Collections (Merging API Data & Local User Input)
-  const resolvedLeads = Array.isArray(leadsQuery.data)
-    ? leadsQuery.data
-    : (localLeads || []).filter(l => l.clientId === activeTenantId || activeTenantId === 'all');
+  const tenantLocalLeads = (localLeads || []).filter(l => l.clientId === activeTenantId || activeTenantId === 'all');
+
+  let resolvedLeads = [];
+  if (Array.isArray(leadsQuery.data) && leadsQuery.data.length > 0) {
+    const apiLeads = leadsQuery.data.map(l => {
+      const localMatch = localLeads.find(ll => ll.id === l.id || (ll.email && ll.email === l.email));
+      return localMatch ? { ...l, ...localMatch } : l;
+    });
+    const apiIds = new Set(apiLeads.map(l => l.id));
+    const extraLocals = tenantLocalLeads.filter(ll => !apiIds.has(ll.id));
+    resolvedLeads = [...apiLeads, ...extraLocals];
+  } else {
+    resolvedLeads = tenantLocalLeads;
+  }
 
   const rawTenantDeals = Array.isArray(dealsQuery.data)
     ? dealsQuery.data
@@ -895,6 +906,48 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const handleUpdateLeadStatus = async (id, status) => {
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, status } : l));
+    setLocalDeals(prev => prev.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage: status } : d));
+
+    queryClient.setQueryData(['leads', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, status } : l);
+    });
+
+    queryClient.setQueryData(['deals', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage: status } : d);
+    });
+
+    try {
+      await api.put(`/leads/${id}`, { status });
+    } catch (err) {
+      console.warn('API update lead status failed:', err.message);
+    }
+  };
+
+  const handleUpdateDealStage = async (id, stage) => {
+    setLocalDeals(prev => prev.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage } : d));
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id || `deal-${l.id}` === id) ? { ...l, status: stage } : l));
+
+    queryClient.setQueryData(['deals', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage } : d);
+    });
+
+    queryClient.setQueryData(['leads', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(l => (l.id === id || `lead-${l.id}` === id || `deal-${l.id}` === id) ? { ...l, status: stage } : l);
+    });
+
+    try {
+      await api.put(`/deals/${id}`, { stage });
+    } catch (err) {
+      console.warn('API update deal stage failed:', err.message);
+    }
+  };
+
   return (
     <CRMContext.Provider value={{
       theme, setTheme,
@@ -918,15 +971,9 @@ export const CRMProvider = ({ children }) => {
         };
         queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
       },
-      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: (id, status) => {
-        setLocalLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
-        setLocalDeals(prev => prev.map(d => (d.id === id || d.leadId === id || d.id === `deal-${id}`) ? { ...d, stage: status } : d));
-      },
+      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus,
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]),
-      deals: resolvedDeals, updateDealStage: (id, stage) => {
-        setLocalDeals(prev => prev.map(d => d.id === id ? { ...d, stage } : d));
-        setLocalLeads(prev => prev.map(l => (l.id === id || `deal-${l.id}` === id) ? { ...l, status: stage } : l));
-      }, createDeal: createDealMutation.mutateAsync,
+      deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
         const target = resolvedQuotes.find(q => q.id === id);
         if (target) target.status = 'Accepted';

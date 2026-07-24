@@ -212,6 +212,9 @@ const AuthPage = ({ onBackToLanding }) => {
                     style={{ paddingLeft: '38px', width: '100%', letterSpacing: '0.2em', fontWeight: '800' }}
                   />
                 </div>
+                <div style={{ fontSize: '0.73rem', color: '#fbbf24', marginTop: '6px' }}>
+                  💡 <strong>Demo TOTP:</strong> Type any 6-digit code (e.g. <code>123456</code> or <code>849201</code>) or click 1-Click Login below.
+                </div>
               </div>
             )}
 

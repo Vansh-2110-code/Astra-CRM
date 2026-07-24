@@ -10,10 +10,13 @@ import {
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const SalaryModule = () => {
-  const { employees, activeTenant, attendanceRecords } = useCRM();
+  const { employees, activeTenant, attendanceRecords, updateEmployeeRoleAndDesignation, activeRole } = useCRM();
+  const isManagerOrAdmin = (activeRole?.permissions || []).includes('manage_salary') || activeRole?.id === 'role-admin' || activeRole?.id === 'role-hr';
   const [activeView, setActiveView] = useState('accumulation'); // 'accumulation' | 'attendance' | 'slips'
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showSlipModal, setShowSlipModal] = useState(null);
+  const [editSalaryEmp, setEditSalaryEmp] = useState(null);
+  const [newSalaryVal, setNewSalaryVal] = useState(50000);
   const [salarySlips, setSalarySlips] = useState([]);
 
   const today = new Date();
@@ -33,7 +36,7 @@ const SalaryModule = () => {
   // Employee salary configurations with attendance-driven per-day computation
   const employeeSalaryData = useMemo(() => {
     return (employees || []).map((emp, i) => {
-      const base = [65000, 55000, 42000, 60000, 48000][i % 5];
+      const base = emp.baseSalary || emp.salary || [65000, 55000, 42000, 60000, 48000][i % 5];
       const hra = Math.round(base * 0.40);
       const transport = 3000;
       const medical = 2500;
@@ -275,11 +278,24 @@ const SalaryModule = () => {
                 </div>
 
                 <div style={{ flex: '0 0 110px', textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Net Monthly</div>
-                  <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
-                    {formatCurrency(emp.netSalary)}
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Base Monthly</div>
+                  <div style={{ fontWeight: '700', color: '#34d399' }}>
+                    {formatCurrency(emp.basicSalary)}
                   </div>
                 </div>
+
+                {isManagerOrAdmin && (
+                  <button
+                    onClick={() => {
+                      setEditSalaryEmp(emp);
+                      setNewSalaryVal(emp.basicSalary);
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px', color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)' }}
+                  >
+                    ✏️ Edit Salary
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -531,6 +547,55 @@ const SalaryModule = () => {
                 <Printer style={{ width: '14px', height: '14px' }} /> Print Slip
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Employee Base Salary Modal */}
+      {editSalaryEmp && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ padding: '28px', maxWidth: '440px', borderRadius: '20px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '4px' }}>Modify Base Monthly Salary</h3>
+            <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              Update compensation details for <strong>{editSalaryEmp.name}</strong> ({editSalaryEmp.designation}).
+            </p>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                if (updateEmployeeRoleAndDesignation) {
+                  await updateEmployeeRoleAndDesignation({
+                    id: editSalaryEmp.id,
+                    designation: editSalaryEmp.designation,
+                    roleId: editSalaryEmp.roleId,
+                    baseSalary: parseInt(newSalaryVal, 10)
+                  });
+                }
+                alert(`Base salary updated to ${formatCurrency(newSalaryVal)} for ${editSalaryEmp.name}.`);
+                setEditSalaryEmp(null);
+              } catch (err) {
+                alert(err.message || 'Failed to update salary');
+              }
+            }}>
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label">New Base Monthly Salary ($)</label>
+                <input
+                  type="number"
+                  required
+                  min="1000"
+                  step="1000"
+                  value={newSalaryVal}
+                  onChange={(e) => setNewSalaryVal(parseInt(e.target.value || 0, 10))}
+                  className="form-input"
+                  style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button type="button" onClick={() => setEditSalaryEmp(null)} className="btn btn-secondary">Cancel</button>
+                <button type="submit" className="btn gradient-btn-primary">Update & Apply Salary</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

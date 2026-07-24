@@ -25,21 +25,25 @@ const SecurityDashboard = () => {
   const [logFilterSeverity, setLogFilterSeverity] = useState('ALL');
   const [logSearchQuery, setLogSearchQuery] = useState('');
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
-  const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec' });
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000 });
 
   const handleCreateEmployeeSubmit = async (e) => {
     e.preventDefault();
     if (!newEmp.name || !newEmp.email) return;
 
     try {
+      const payload = {
+        ...newEmp,
+        baseSalary: parseInt(newEmp.baseSalary || 50000, 10)
+      };
       if (createEmployee) {
-        await createEmployee(newEmp);
+        await createEmployee(payload);
       }
       if (logAudit) {
-        logAudit('CREATE_EMPLOYEE', newEmp.email, `Created new employee profile: ${newEmp.name} (${newEmp.designation}).`, 'MEDIUM');
+        logAudit('CREATE_EMPLOYEE', newEmp.email, `Created new employee profile: ${newEmp.name} (${newEmp.designation}) with Base Salary $${newEmp.baseSalary}.`, 'MEDIUM');
       }
       setShowAddEmpModal(false);
-      setNewEmp({ name: '', email: '', designation: '', roleId: 'role-exec' });
+      setNewEmp({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000 });
     } catch (err) {
       alert(err.message || 'Failed to create employee');
     }
@@ -509,6 +513,7 @@ const SecurityDashboard = () => {
                   <th>Mock ID Code</th>
                   <th>Designation / Corporate Title</th>
                   <th>System Access Role</th>
+                  <th>Base Salary ($ / Mo)</th>
                   {isSecurityAdmin && <th>Actions</th>}
                 </tr>
               </thead>
@@ -534,7 +539,7 @@ const SecurityDashboard = () => {
           <div className="modal-content" style={{ padding: '28px', maxWidth: '480px' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '6px' }}>Add New Corporate Employee</h3>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-              Create an employee profile and assign organizational system access permissions.
+              Create an employee profile, set initial salary, and assign system access permissions.
             </p>
 
             <form onSubmit={handleCreateEmployeeSubmit}>
@@ -574,6 +579,20 @@ const SecurityDashboard = () => {
                 />
               </div>
 
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label">Base Monthly Salary ($)</label>
+                <input
+                  type="number"
+                  required
+                  min="1000"
+                  step="1000"
+                  placeholder="e.g. 65000"
+                  value={newEmp.baseSalary}
+                  onChange={(e) => setNewEmp({ ...newEmp, baseSalary: parseInt(e.target.value || 0, 10) })}
+                  className="form-input"
+                />
+              </div>
+
               <div className="form-group" style={{ marginBottom: '20px' }}>
                 <label className="form-label">System Access Role</label>
                 <select
@@ -603,6 +622,7 @@ const SecurityDashboard = () => {
 const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesignation }) => {
   const [designation, setDesignation] = useState(emp.designation);
   const [roleId, setRoleId] = useState(emp.roleId);
+  const [baseSalary, setBaseSalary] = useState(emp.baseSalary || 50000);
 
   const matchedRole = roles.find(r => r.id === roleId);
 
@@ -629,7 +649,7 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
             value={designation}
             onChange={(e) => setDesignation(e.target.value)}
             className="form-input"
-            style={{ fontSize: '0.8rem', padding: '6px 10px', width: '220px' }}
+            style={{ fontSize: '0.8rem', padding: '6px 10px', width: '200px' }}
           />
         ) : (
           <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{emp.designation}</span>
@@ -651,12 +671,29 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
           <span className="badge badge-purple" style={{ fontSize: '0.75rem' }}>{matchedRole?.name || 'Representative'}</span>
         )}
       </td>
+      <td>
+        {isSecurityAdmin ? (
+          <input
+            type="number"
+            min="1000"
+            step="1000"
+            value={baseSalary}
+            onChange={(e) => setBaseSalary(parseInt(e.target.value || 0, 10))}
+            className="form-input"
+            style={{ fontSize: '0.85rem', padding: '6px 10px', width: '110px', color: '#34d399', fontWeight: '800' }}
+          />
+        ) : (
+          <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#34d399' }}>
+            ${(emp.baseSalary || 50000).toLocaleString()}
+          </span>
+        )}
+      </td>
       {isSecurityAdmin && (
         <td>
           <button
             onClick={() => {
-              updateEmployeeRoleAndDesignation(emp.id, roleId, designation);
-              alert(`Profile updated successfully for ${emp.name}.`);
+              updateEmployeeRoleAndDesignation({ id: emp.id, roleId, designation, baseSalary });
+              alert(`Profile & Salary updated successfully for ${emp.name} ($${baseSalary.toLocaleString()}).`);
             }}
             className="btn gradient-btn-primary"
             style={{ padding: '6px 12px', fontSize: '0.75rem' }}

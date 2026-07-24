@@ -43,6 +43,11 @@ const Employee = sequelize.define('Employee', {
   },
   avatar: {
     type: DataTypes.TEXT,
+  },
+  baseSalary: {
+    type: DataTypes.INTEGER,
+    defaultValue: 50000,
+    field: 'base_salary'
   }
 }, {
   tableName: 'employees',

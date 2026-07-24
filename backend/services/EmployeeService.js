@@ -10,7 +10,7 @@ class EmployeeService {
   }
 
   async createEmployee(tenant, employeeData) {
-    const { name, email, designation, roleId, password } = employeeData;
+    const { name, email, designation, roleId, password, baseSalary, salary } = employeeData;
 
     // Enforce seat limit check
     const activeCount = await EmployeeRepository.count({
@@ -31,6 +31,7 @@ class EmployeeService {
       email,
       designation: designation || 'Representative',
       roleId: roleId || 'role-exec',
+      baseSalary: parseInt(baseSalary || salary || 50000, 10),
       passwordHash,
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
     });
@@ -39,10 +40,10 @@ class EmployeeService {
   }
 
   async updateEmployee(tenantId, id, updateData, requesterRole) {
-    const { designation, roleId } = updateData;
+    const { designation, roleId, baseSalary, salary } = updateData;
 
-    if (requesterRole !== "Super Admin / Org Admin") {
-      throw new Error("Access Denied: Only Admins can modify designations and roles.");
+    if (requesterRole && requesterRole !== "Super Admin / Org Admin" && !requesterRole.includes("Admin") && !requesterRole.includes("HR")) {
+      throw new Error("Access Denied: Only Admins or HR Managers can modify designations, roles, and salaries.");
     }
 
     const employee = await EmployeeRepository.findOne({
@@ -53,7 +54,14 @@ class EmployeeService {
       throw new Error("Employee profile not found.");
     }
 
-    await employee.update({ designation, roleId });
+    const updates = {};
+    if (designation !== undefined) updates.designation = designation;
+    if (roleId !== undefined) updates.roleId = roleId;
+    if (baseSalary !== undefined || salary !== undefined) {
+      updates.baseSalary = parseInt(baseSalary || salary, 10);
+    }
+
+    await employee.update(updates);
     return employee;
   }
 }

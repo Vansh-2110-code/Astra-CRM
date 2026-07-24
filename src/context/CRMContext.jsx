@@ -105,26 +105,36 @@ export const CRMProvider = ({ children }) => {
     { id: "deal-501", clientId: "client-001", title: "Acme Corp Cloud Overhaul", company: "Acme Corporation", dealValue: 150000, probability: 75, stage: "Proposal Sent", pipelineId: "pipe-enterprise" },
     { id: "deal-502", clientId: "client-001", title: "BioGenetics Lab CRM Rollout", company: "BioGenetics Lab Solutions", dealValue: 280000, probability: 90, stage: "Negotiation", pipelineId: "pipe-enterprise" }
   ]);
-  const [localQuotes, setLocalQuotes] = useState([
-    {
-      id: "QT-2026-880",
-      clientId: "client-001",
-      customerName: "Acme Corporation",
-      contactPerson: "Jonathan Sterling",
-      contactEmail: "j.sterling@acmecorp.com",
-      items: [{ productId: "p1", productName: "Astra CRM Enterprise License", quantity: 2, unitPrice: 24500, taxRate: 8.5, total: 49137 }],
-      subtotal: 49000,
-      discountPercent: 8,
-      discountAmount: 3920,
-      taxTotal: 4057,
-      grandTotal: 49137,
-      notes: "Includes 24-month extended hardware warranty.",
-      status: "Accepted",
-      createdDate: "2026-07-01",
-      validUntil: "2026-08-30"
-    }
-  ]);
-  const [localClients, setLocalClients] = useState([]);
+  const [localQuotes, setLocalQuotes] = useState(() => {
+    const saved = localStorage.getItem('astra_quotes');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: "QT-2026-880",
+        clientId: "client-001",
+        customerName: "Acme Corporation",
+        contactPerson: "Jonathan Sterling",
+        contactEmail: "j.sterling@acmecorp.com",
+        items: [{ productId: "p1", productName: "Astra CRM Enterprise License", quantity: 2, unitPrice: 24500, taxRate: 8.5, total: 49137 }],
+        subtotal: 49000,
+        discountPercent: 8,
+        discountAmount: 3920,
+        taxTotal: 4057,
+        grandTotal: 49137,
+        notes: "Includes 24-month extended hardware warranty.",
+        status: "Accepted",
+        createdDate: "2026-07-01",
+        validUntil: "2026-08-30"
+      }
+    ];
+  });
+  const [localSalarySlips, setLocalSalarySlips] = useState(() => {
+    const saved = localStorage.getItem('astra_salary_slips');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [localClients, setLocalClients] = useState(() => {
+    const saved = localStorage.getItem('astra_clients');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [localProducts, setLocalProducts] = useState([]);
 
   // Authentication State
@@ -178,6 +188,19 @@ export const CRMProvider = ({ children }) => {
       sessionStorage.removeItem('crm_active_tenant');
     }
   }, [activeTenantId]);
+
+  // Sync state to localStorage for offline persistence
+  useEffect(() => {
+    localStorage.setItem('astra_quotes', JSON.stringify(localQuotes));
+  }, [localQuotes]);
+
+  useEffect(() => {
+    localStorage.setItem('astra_salary_slips', JSON.stringify(localSalarySlips));
+  }, [localSalarySlips]);
+
+  useEffect(() => {
+    localStorage.setItem('astra_clients', JSON.stringify(localClients));
+  }, [localClients]);
 
   // Apply HTML attribute for dark/light mode
   useEffect(() => {
@@ -271,6 +294,13 @@ export const CRMProvider = ({ children }) => {
   const productsQuery = useQuery({
     queryKey: ['products', activeTenantId],
     queryFn: () => api.get('/products').then(res => res.data),
+    enabled: isAuthenticated,
+    retry: false
+  });
+
+  const salarySlipsQuery = useQuery({
+    queryKey: ['salarySlips', activeTenantId],
+    queryFn: () => api.get('/salary').then(res => res.data),
     enabled: isAuthenticated,
     retry: false
   });
@@ -667,6 +697,10 @@ export const CRMProvider = ({ children }) => {
     ? auditLogsQuery.data
     : [];
 
+  const resolvedSalarySlips = Array.isArray(salarySlipsQuery.data) && salarySlipsQuery.data.length > 0
+    ? [...salarySlipsQuery.data, ...localSalarySlips]
+    : localSalarySlips;
+
   // MUTATIONS (Write Operations)
   const addLeadMutation = useMutation({
     mutationFn: (leadData) => api.post('/leads', leadData),
@@ -689,6 +723,22 @@ export const CRMProvider = ({ children }) => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotes', activeTenantId] }),
     onError: (err, newQuote) => {
       setLocalQuotes(prev => [{ id: `QT-${Date.now()}`, clientId: activeTenantId, status: 'Draft', createdDate: new Date().toISOString().split('T')[0], validUntil: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0], ...newQuote }, ...prev]);
+    }
+  });
+
+  const generateSalarySlipMutation = useMutation({
+    mutationFn: (slipData) => api.post('/salary/generate', slipData),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['salarySlips', activeTenantId] }),
+    onError: (err, newSlip) => {
+      setLocalSalarySlips(prev => [newSlip, ...prev]);
+    }
+  });
+
+  const markSalaryPaidMutation = useMutation({
+    mutationFn: (id) => api.put(`/salary/${id}/pay`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['salarySlips', activeTenantId] }),
+    onError: (err, id) => {
+      setLocalSalarySlips(prev => prev.map(s => s.id === id ? { ...s, status: 'Paid', paidDate: new Date().toISOString().split('T')[0] } : s));
     }
   });
 
@@ -759,7 +809,10 @@ export const CRMProvider = ({ children }) => {
       globalSearch, setGlobalSearch,
       notifications, setNotifications,
       createRazorpayOrder, verifyRazorpayPayment,
-      attendanceRecords: localAttendance, batchMarkAttendance, markAttendance: () => {}
+      attendanceRecords: localAttendance, batchMarkAttendance, markAttendance: () => {},
+      salarySlips: resolvedSalarySlips,
+      generateSalarySlip: generateSalarySlipMutation.mutateAsync,
+      markSalaryPaid: markSalaryPaidMutation.mutateAsync
     }}>
       {children}
     </CRMContext.Provider>

@@ -10,7 +10,8 @@ import {
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const SalaryModule = () => {
-  const { employees, activeTenant, attendanceRecords, updateEmployeeRoleAndDesignation, activeRole } = useCRM();
+  const { employees, activeTenant, attendanceRecords, updateEmployeeRoleAndDesignation, activeRole, salarySlips: contextSlips, generateSalarySlip, markSalaryPaid } = useCRM();
+  const salarySlips = contextSlips || [];
   const isManagerOrAdmin = (activeRole?.permissions || []).includes('manage_salary') || activeRole?.id === 'role-admin' || activeRole?.id === 'role-hr';
   const [activeView, setActiveView] = useState('accumulation'); // 'accumulation' | 'attendance' | 'slips'
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -18,7 +19,6 @@ const SalaryModule = () => {
   const [editSalaryEmp, setEditSalaryEmp] = useState(null);
   const [newSalaryVal, setNewSalaryVal] = useState(50000);
   const [payslipLogoUrl, setPayslipLogoUrl] = useState('');
-  const [salarySlips, setSalarySlips] = useState([]);
 
   const handlePayslipLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -145,14 +145,16 @@ const SalaryModule = () => {
       createdAt: new Date().toISOString()
     };
 
-    setSalarySlips(prev => [newSlip, ...prev]);
+    if (generateSalarySlip) {
+      generateSalarySlip(newSlip);
+    }
     setShowGenerateModal(false);
   };
 
   const markPaid = (slipId) => {
-    setSalarySlips(prev => prev.map(s =>
-      s.id === slipId ? { ...s, status: 'Paid', paidDate: new Date().toISOString().split('T')[0] } : s
-    ));
+    if (markSalaryPaid) {
+      markSalaryPaid(slipId);
+    }
   };
 
   const formatCurrency = (val) => `₹${(val || 0).toLocaleString('en-IN')}`;

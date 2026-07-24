@@ -11,7 +11,9 @@ import {
   Clock,
   ShieldCheck,
   AlertCircle,
-  Percent
+  Percent,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import QuotePreviewModal from './QuotePreviewModal';
 
@@ -28,6 +30,21 @@ const QuoteBuilder = () => {
   const [notes, setNotes] = useState('');
   const [customLogoUrl, setCustomLogoUrl] = useState('');
   const [currency, setCurrency] = useState('USD ($)');
+
+  const handleLogoFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit. Please upload a smaller logo image.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (uploadEvt) => {
+        setCustomLogoUrl(uploadEvt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
 
   const [lineItems, setLineItems] = useState([]);
@@ -257,17 +274,57 @@ const QuoteBuilder = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
                 <div className="form-group">
-                  <label className="form-label">Upload Company Logo URL</label>
-                  <input
-                    type="text"
-                    placeholder="https://example.com/logo.png"
-                    value={customLogoUrl}
-                    onChange={(e) => setCustomLogoUrl(e.target.value)}
-                    className="form-input"
-                  />
-                  <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Or leave blank to use active tenant default branding logo.
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Quotation Company Logo</span>
+                    <span style={{ fontSize: '0.72rem', color: '#818cf8', fontWeight: '700' }}>Local System / URL</span>
+                  </label>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <label className="btn btn-secondary" style={{
+                      padding: '8px 12px',
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      borderColor: 'rgba(99, 102, 241, 0.4)',
+                      background: 'rgba(99, 102, 241, 0.12)',
+                      color: '#a5b4fc',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      <Upload style={{ width: '14px', height: '14px', color: '#818cf8' }} />
+                      <span>Upload Local Logo</span>
+                      <input
+                        type="file"
+                        accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                        onChange={handleLogoFileUpload}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+
+                    <input
+                      type="text"
+                      placeholder="Or paste image URL"
+                      value={customLogoUrl}
+                      onChange={(e) => setCustomLogoUrl(e.target.value)}
+                      className="form-input"
+                      style={{ fontSize: '0.8rem', flex: 1 }}
+                    />
                   </div>
+
+                  {customLogoUrl ? (
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 10px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px' }}>
+                      <img src={customLogoUrl} alt="Company Logo Preview" style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'contain', background: '#fff', padding: '2px' }} />
+                      <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: '700', flex: 1 }}>Logo Attached Successfully</span>
+                      <button type="button" onClick={() => setCustomLogoUrl('')} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700' }}>
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Choose a PNG, JPG, or SVG file from your computer or leave blank for default tenant branding logo.
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Quotation Currency</label>

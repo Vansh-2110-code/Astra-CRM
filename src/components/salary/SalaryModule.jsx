@@ -4,7 +4,7 @@ import AttendanceTracker from './AttendanceTracker';
 import {
   DollarSign, Calendar, Download, Eye, CheckCircle2,
   Users, TrendingUp, FileText, Wallet, BadgeIndianRupee,
-  Clock, PlusCircle, Printer, CheckSquare
+  Clock, PlusCircle, Printer, CheckSquare, Upload
 } from 'lucide-react';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -17,7 +17,23 @@ const SalaryModule = () => {
   const [showSlipModal, setShowSlipModal] = useState(null);
   const [editSalaryEmp, setEditSalaryEmp] = useState(null);
   const [newSalaryVal, setNewSalaryVal] = useState(50000);
+  const [payslipLogoUrl, setPayslipLogoUrl] = useState('');
   const [salarySlips, setSalarySlips] = useState([]);
+
+  const handlePayslipLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit. Please upload a smaller logo image.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (uploadEvt) => {
+        setPayslipLogoUrl(uploadEvt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const today = new Date();
   const currentDay = today.getDate();
@@ -151,7 +167,31 @@ const SalaryModule = () => {
             Track per-day salary accumulation, generate payslips, and manage payroll disbursements.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <label className="btn btn-secondary" style={{
+            padding: '10px 14px',
+            fontSize: '0.8rem',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            borderColor: 'rgba(245, 158, 11, 0.4)',
+            background: 'rgba(245, 158, 11, 0.12)',
+            color: '#fbbf24',
+            whiteSpace: 'nowrap'
+          }}>
+            <Upload style={{ width: '15px', height: '15px', color: '#fbbf24' }} />
+            <span>{payslipLogoUrl ? 'Change Payslip Logo' : 'Upload Payslip Logo'}</span>
+            <input type="file" accept="image/*" onChange={handlePayslipLogoUpload} style={{ display: 'none' }} />
+          </label>
+
+          {payslipLogoUrl && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 10px', borderRadius: '8px' }}>
+              <img src={payslipLogoUrl} alt="Payslip Logo" style={{ width: '22px', height: '22px', borderRadius: '4px', objectFit: 'contain', background: '#fff' }} />
+              <span style={{ fontSize: '0.72rem', color: '#34d399', fontWeight: '700' }}>Custom Logo Active</span>
+            </div>
+          )}
+
           <button
             onClick={() => setActiveView('accumulation')}
             className={`btn ${activeView === 'accumulation' ? 'gradient-btn-primary' : 'btn-secondary'}`}
@@ -397,6 +437,34 @@ const SalaryModule = () => {
             </p>
 
             <form onSubmit={handleGenerateSlip}>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Payslip Company Logo</span>
+                  <span style={{ fontSize: '0.72rem', color: '#fbbf24', fontWeight: '700' }}>Local System / Computer</span>
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <label className="btn btn-secondary" style={{
+                    padding: '8px 12px',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    borderColor: 'rgba(245, 158, 11, 0.4)',
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    color: '#fbbf24',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    <Upload style={{ width: '14px', height: '14px', color: '#fbbf24' }} />
+                    <span>Upload Local Logo</span>
+                    <input type="file" accept="image/*" onChange={handlePayslipLogoUpload} style={{ display: 'none' }} />
+                  </label>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    {payslipLogoUrl ? '✓ Custom Logo Selected' : 'Using Default Active Tenant Logo'}
+                  </span>
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
                   <label className="form-label">Select Employee</label>
@@ -470,17 +538,32 @@ const SalaryModule = () => {
       {/* View Salary Slip Detail Modal */}
       {showSlipModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ padding: '28px', maxWidth: '520px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>Salary Slip</h3>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          <div className="modal-content" style={{ padding: '28px', maxWidth: '540px' }}>
+            {/* Payslip Company Branding Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '14px', borderBottom: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img
+                  src={showSlipModal.logoUrl || payslipLogoUrl || activeTenant?.logo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80'}
+                  alt="Company Logo"
+                  style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', background: '#ffffff', padding: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
+                />
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>
+                    {activeTenant?.name || 'Astra Corporate Group'}
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: '700' }}>
+                    OFFICIAL REMUNERATION VOUCHER
+                  </div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span className={`badge ${showSlipModal.status === 'Paid' ? 'badge-emerald' : 'badge-purple'}`}>
+                  {showSlipModal.status}
+                </span>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                   {showSlipModal.id} • {showSlipModal.month} {showSlipModal.year}
                 </div>
               </div>
-              <span className={`badge ${showSlipModal.status === 'Paid' ? 'badge-emerald' : 'badge-purple'}`}>
-                {showSlipModal.status}
-              </span>
             </div>
 
             <div className="glass-card" style={{ padding: '16px', marginBottom: '16px' }}>

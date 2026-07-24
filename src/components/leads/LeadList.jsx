@@ -14,15 +14,45 @@ import {
   CheckCircle2,
   DollarSign,
   Tag,
-  Package
+  Package,
+  Trash2,
+  FileText,
+  Edit3,
+  X
 } from 'lucide-react';
 import LeadFormModal from './LeadFormModal';
 
 const LeadList = () => {
-  const { leads, updateLeadStatus, globalSearch } = useCRM();
+  const { leads, updateLeadStatus, deleteLead, updateLeadNotes, globalSearch } = useCRM();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
+  
+  // Notes Edit Modal state
+  const [editingNotesLead, setEditingNotesLead] = useState(null);
+  const [notesDraft, setNotesDraft] = useState('');
+
+  const handleOpenNotes = (lead) => {
+    setEditingNotesLead(lead);
+    setNotesDraft(lead.notes || '');
+  };
+
+  const handleSaveNotes = async () => {
+    if (editingNotesLead) {
+      if (updateLeadNotes) {
+        await updateLeadNotes(editingNotesLead.id, notesDraft);
+      }
+      setEditingNotesLead(null);
+    }
+  };
+
+  const handleDeleteLeadClick = async (lead) => {
+    if (window.confirm(`Are you sure you want to delete lead "${lead.name}" (${lead.company})?`)) {
+      if (deleteLead) {
+        await deleteLead(lead.id);
+      }
+    }
+  };
 
   const filteredLeads = leads.filter(l => {
     const normStatus = (!l.status || l.status === 'Lead') ? 'Lead Intake' : l.status;
@@ -214,13 +244,33 @@ const LeadList = () => {
                     </div>
                   </td>
                   <td>
-                    <button
-                      onClick={() => alert(`Notes for ${lead.name}:\n\n"${lead.notes}"`)}
-                      className="btn btn-secondary"
-                      style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-                    >
-                      View Notes
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => handleOpenNotes(lead)}
+                        className="btn btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <FileText style={{ width: '13px', height: '13px' }} />
+                        <span>Notes</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLeadClick(lead)}
+                        title="Delete Lead"
+                        style={{
+                          background: 'rgba(244, 63, 94, 0.15)',
+                          color: '#f43f5e',
+                          border: '1px solid rgba(244, 63, 94, 0.3)',
+                          padding: '5px 8px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Trash2 style={{ width: '14px', height: '14px' }} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -231,6 +281,50 @@ const LeadList = () => {
 
       {/* Lead Intake Modal */}
       {showAddModal && <LeadFormModal onClose={() => setShowAddModal(false)} />}
+
+      {/* Notes View / Edit Modal */}
+      {editingNotesLead && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ padding: '24px', maxWidth: '550px', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileText style={{ color: '#60a5fa', width: '20px', height: '20px' }} />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>Lead Notes & Activity Log</h3>
+              </div>
+              <button onClick={() => setEditingNotesLead(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
+            </div>
+
+            <div style={{ background: 'var(--bg-input)', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
+              <div style={{ fontWeight: '800', color: 'var(--text-primary)' }}>{editingNotesLead.name}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>{editingNotesLead.company} • {editingNotesLead.email}</div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label className="form-label">Edit Requirement & Activity Notes</label>
+              <textarea
+                rows="6"
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+                placeholder="Add meeting notes, customer requirement details, follow-up timeline..."
+                className="form-textarea"
+                style={{ fontSize: '0.85rem', lineHeight: '1.5' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button onClick={() => setEditingNotesLead(null)} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleSaveNotes} className="btn gradient-btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Edit3 style={{ width: '14px', height: '14px' }} />
+                <span>Save Notes</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

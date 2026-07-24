@@ -950,6 +950,42 @@ export const CRMProvider = ({ children }) => {
     }
   };
 
+  const handleDeleteLead = async (id) => {
+    setLocalLeads(prev => prev.filter(l => l.id !== id && `lead-${l.id}` !== id && l.id !== `lead-${id}`));
+    setLocalDeals(prev => prev.filter(d => d.id !== id && d.leadId !== id && d.id !== `deal-${id}` && `deal-${d.leadId}` !== id));
+
+    queryClient.setQueryData(['leads', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.filter(l => l.id !== id && `lead-${l.id}` !== id && l.id !== `lead-${id}`);
+    });
+
+    queryClient.setQueryData(['deals', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.filter(d => d.id !== id && d.leadId !== id && d.id !== `deal-${id}`);
+    });
+
+    try {
+      await api.delete(`/leads/${id}`);
+    } catch (err) {
+      console.warn('API delete lead offline:', err.message);
+    }
+  };
+
+  const handleUpdateLeadNotes = async (id, notes) => {
+    setLocalLeads(prev => prev.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, notes } : l));
+
+    queryClient.setQueryData(['leads', activeTenantId], old => {
+      if (!Array.isArray(old)) return old;
+      return old.map(l => (l.id === id || `lead-${l.id}` === id) ? { ...l, notes } : l);
+    });
+
+    try {
+      await api.put(`/leads/${id}`, { notes });
+    } catch (err) {
+      console.warn('API update lead notes offline:', err.message);
+    }
+  };
+
   return (
     <CRMContext.Provider value={{
       theme, setTheme,
@@ -973,7 +1009,7 @@ export const CRMProvider = ({ children }) => {
         };
         queryClient.setQueryData(['auditLogs', activeTenantId], old => [newLog, ...(old || [])]);
       },
-      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus,
+      leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]),
       deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {

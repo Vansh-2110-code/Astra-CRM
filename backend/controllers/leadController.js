@@ -46,3 +46,21 @@ exports.updateLead = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.deleteLead = async (req, res) => {
+  try {
+    const tenantId = req.tenant.id;
+    const { id } = req.params;
+    await LeadService.deleteLead(tenantId, id);
+
+    // Invalidate Redis Query Cache
+    await invalidateCache(tenantId, 'leads');
+
+    // Emit live real-time event to all connected sockets in this tenant room
+    emitToTenant(tenantId, 'lead_deleted', { id });
+
+    res.json({ message: "Lead profile deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};

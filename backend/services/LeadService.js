@@ -80,6 +80,23 @@ class LeadService {
     await lead.update(updates);
     return lead;
   }
+
+  async deleteLead(tenantId, id) {
+    let lead = await LeadRepository.findOne({ where: { id, clientId: tenantId } });
+    if (!lead) {
+      const cleanId = id.replace(/^lead-/, '');
+      lead = await LeadRepository.findOne({ where: { id: cleanId, clientId: tenantId } }) ||
+             await LeadRepository.findOne({ where: { email: cleanId, clientId: tenantId } });
+    }
+
+    if (!lead) {
+      // If not found in DB, return true gracefully
+      return true;
+    }
+
+    await lead.destroy();
+    return true;
+  }
 }
 
 module.exports = new LeadService();

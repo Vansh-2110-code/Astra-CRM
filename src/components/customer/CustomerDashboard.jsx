@@ -67,16 +67,29 @@ const CustomerDashboard = () => {
       {/* Top Header */}
       <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <img
-            src="/logo.png"
-            alt="Astra CRM Logo"
-            style={{
-              width: '44px',
-              height: '44px',
-              objectFit: 'contain',
-              filter: 'drop-shadow(0 4px 10px rgba(239, 68, 68, 0.4))'
-            }}
-          />
+          <div style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: '12px',
+            background: '#ffffff',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 14px rgba(255, 255, 255, 0.25)',
+            flexShrink: 0
+          }}>
+            <img
+              src="/logo.png"
+              alt="Astra CRM Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                borderRadius: '8px'
+              }}
+            />
+          </div>
           <div>
             <div style={{ fontSize: '0.8rem', color: '#c084fc', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Astra CRM Customer Portal

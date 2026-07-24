@@ -219,16 +219,29 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       }}>
         {/* Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img
-            src="/logo.png"
-            alt="Astra CRM Logo"
-            style={{
-              width: '42px',
-              height: '42px',
-              objectFit: 'contain',
-              filter: 'drop-shadow(0 4px 12px rgba(239, 68, 68, 0.4))'
-            }}
-          />
+          <div style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '12px',
+            background: '#ffffff',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 14px rgba(255, 255, 255, 0.25)',
+            flexShrink: 0
+          }}>
+            <img
+              src="/logo.png"
+              alt="Astra CRM Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                borderRadius: '8px'
+              }}
+            />
+          </div>
           <div>
             <span style={{ fontSize: '1.35rem', fontWeight: '900', letterSpacing: '-0.03em', background: 'linear-gradient(135deg, #fff 0%, #c7d2fe 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               ASTRA CRM
@@ -1281,15 +1294,28 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img
-            src="/logo.png"
-            alt="Astra CRM Logo"
-            style={{
-              width: '24px',
-              height: '24px',
-              objectFit: 'contain'
-            }}
-          />
+          <div style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '8px',
+            background: '#ffffff',
+            padding: '3px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img
+              src="/logo.png"
+              alt="Astra CRM Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                borderRadius: '4px'
+              }}
+            />
+          </div>
           <span style={{ fontSize: '0.9rem', fontWeight: '800' }}>ASTRA CRM Enterprise Platform</span>
         </div>
 

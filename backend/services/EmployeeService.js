@@ -70,6 +70,25 @@ class EmployeeService {
     await employee.update(updates);
     return employee;
   }
+
+  async deleteEmployee(tenantId, id) {
+    const employee = await EmployeeRepository.findOne({
+      where: { id, clientId: tenantId }
+    });
+
+    if (!employee) {
+      // If not found in DB by exact id, try matching by id or email
+      const alt = await EmployeeRepository.findOne({ where: { clientId: tenantId, email: id } });
+      if (alt) {
+        await alt.destroy();
+        return true;
+      }
+      throw new Error("Employee profile not found.");
+    }
+
+    await employee.destroy();
+    return true;
+  }
 }
 
 module.exports = new EmployeeService();

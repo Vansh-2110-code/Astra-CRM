@@ -14,11 +14,12 @@ import {
   Terminal,
   RefreshCw,
   Search,
-  Filter
+  Filter,
+  Trash2
 } from 'lucide-react';
 
 const SecurityDashboard = () => {
-  const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation } = useCRM();
+  const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation, deleteEmployee } = useCRM();
   // Check if active user has security admin permission to toggle permissions
   const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
   const [activeSubTab, setActiveSubTab] = useState(isSecurityAdmin ? 'audit' : 'employees');
@@ -526,6 +527,7 @@ const SecurityDashboard = () => {
                     roles={roles}
                     isSecurityAdmin={isSecurityAdmin}
                     updateEmployeeRoleAndDesignation={updateEmployeeRoleAndDesignation}
+                    deleteEmployee={deleteEmployee}
                   />
                 ))}
               </tbody>
@@ -620,12 +622,24 @@ const SecurityDashboard = () => {
   );
 };
 
-const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesignation }) => {
+const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesignation, deleteEmployee }) => {
   const [designation, setDesignation] = useState(emp.designation);
   const [roleId, setRoleId] = useState(emp.roleId);
   const [baseSalary, setBaseSalary] = useState(emp.baseSalary || 50000);
 
   const matchedRole = roles.find(r => r.id === roleId);
+
+  const handleDelete = async () => {
+    if (window.confirm(`Are you sure you want to remove ${emp.name} (${emp.email}) from the corporate directory?`)) {
+      try {
+        if (deleteEmployee) {
+          await deleteEmployee(emp.id);
+        }
+      } catch (err) {
+        alert(err.response?.data?.error || err.message || 'Failed to remove employee');
+      }
+    }
+  };
 
   return (
     <tr>
@@ -691,16 +705,35 @@ const EmployeeRow = ({ emp, roles, isSecurityAdmin, updateEmployeeRoleAndDesigna
       </td>
       {isSecurityAdmin && (
         <td>
-          <button
-            onClick={() => {
-              updateEmployeeRoleAndDesignation({ id: emp.id, roleId, designation, baseSalary });
-              alert(`Profile & Salary updated successfully for ${emp.name} ($${baseSalary.toLocaleString()}).`);
-            }}
-            className="btn gradient-btn-primary"
-            style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-          >
-            Save Profile
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => {
+                updateEmployeeRoleAndDesignation({ id: emp.id, roleId, designation, baseSalary });
+                alert(`Profile & Salary updated successfully for ${emp.name} ($${baseSalary.toLocaleString()}).`);
+              }}
+              className="btn gradient-btn-primary"
+              style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+            >
+              Save Profile
+            </button>
+            <button
+              onClick={handleDelete}
+              title="Remove Employee"
+              style={{
+                background: 'rgba(244, 63, 94, 0.15)',
+                color: '#f43f5e',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
+                padding: '6px 10px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Trash2 style={{ width: '14px', height: '14px' }} />
+            </button>
+          </div>
         </td>
       )}
     </tr>

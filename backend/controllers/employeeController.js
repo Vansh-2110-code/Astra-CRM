@@ -31,3 +31,14 @@ exports.updateEmployee = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.deleteEmployee = async (req, res) => {
+  try {
+    const tenantId = req.tenant.id;
+    const { id } = req.params;
+    await EmployeeService.deleteEmployee(tenantId, id);
+    res.json({ message: "Employee profile deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};

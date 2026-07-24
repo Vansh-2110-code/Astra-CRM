@@ -720,6 +720,18 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: (id) => api.delete(`/employees/${id}`),
+    onSuccess: (resData, id) => {
+      queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] });
+      setLocalEmployees(prev => prev.filter(e => e.id !== id && e.email !== id));
+    },
+    onError: (err, id) => {
+      console.warn('API delete employee failed, deleting locally:', err);
+      setLocalEmployees(prev => prev.filter(e => e.id !== id && e.email !== id));
+    }
+  });
+
   const tenantLocalEmployees = (localEmployees || []).filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
 
   let resolvedEmployees = [];
@@ -811,7 +823,7 @@ export const CRMProvider = ({ children }) => {
       isAuthenticated, currentUser, login, signup, logout,
       allClients: allClientsList, activeTenant, setActiveTenantId, onboardNewClient: onboardNewClientMutation.mutateAsync, upgradeTenantPlan: upgradeTenantMutation.mutateAsync,
       roles, activeRole, setActiveRoleId, updateRolePermissions: (roleId, permission) => {},
-      employees: resolvedEmployees, createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: updateEmployeeMutation.mutateAsync,
+      employees: resolvedEmployees, createEmployee: createEmployeeMutation.mutateAsync, updateEmployeeRoleAndDesignation: updateEmployeeMutation.mutateAsync, deleteEmployee: deleteEmployeeMutation.mutateAsync,
       securityConfig, setSecurityConfig,
       auditLogs: resolvedAuditLogs, logAudit: (action, resource, details, severity = 'INFO') => {
         const newLog = {

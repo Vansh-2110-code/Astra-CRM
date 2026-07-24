@@ -13,7 +13,8 @@ import {
   Building,
   CheckCircle2,
   DollarSign,
-  Tag
+  Tag,
+  Package
 } from 'lucide-react';
 import LeadFormModal from './LeadFormModal';
 
@@ -160,6 +161,10 @@ const LeadList = () => {
                       <span><Building style={{ width: '12px', height: '12px', display: 'inline' }} /> {lead.company}</span>
                       <span>•</span>
                       <span><Mail style={{ width: '12px', height: '12px', display: 'inline' }} /> {lead.email}</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontWeight: '700' }}>
+                      <Package style={{ width: '12px', height: '12px' }} />
+                      <span>Product: {lead.productNeeded || 'Astra CRM Enterprise Suite'}</span>
                     </div>
                   </td>
                   <td>

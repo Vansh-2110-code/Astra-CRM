@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
 
 const LeadFormModal = ({ onClose }) => {
-  const { addLead, employees = [], currentUser } = useCRM();
+  const { addLead, products = [], employees = [], currentUser } = useCRM();
 
   // Get list of sales reps/employees for the active organization
   const availableReps = employees.length > 0 
@@ -20,6 +20,7 @@ const LeadFormModal = ({ onClose }) => {
     email: '',
     phone: '',
     source: 'Website Forms',
+    productNeeded: 'Astra CRM Enterprise Suite',
     potentialValue: 0,
     assignedTo: availableReps[0] || '',
     notes: '',
@@ -36,6 +37,7 @@ const LeadFormModal = ({ onClose }) => {
       email: formData.email,
       phone: formData.phone || '',
       source: formData.source,
+      productNeeded: formData.productNeeded || 'Astra CRM Enterprise Suite',
       potentialValue: parseFloat(formData.potentialValue) || 0,
       assignedTo: formData.assignedTo,
       notes: formData.notes || '',
@@ -115,6 +117,24 @@ const LeadFormModal = ({ onClose }) => {
                 <option value="Email Campaigns">Email Campaigns</option>
                 <option value="Referral">Referrals</option>
                 <option value="Manual Entry">Manual Entry</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Product Needed / Interested</label>
+              <select
+                value={formData.productNeeded}
+                onChange={(e) => setFormData({ ...formData, productNeeded: e.target.value })}
+                className="form-select"
+              >
+                <option value="Astra CRM Enterprise Suite">Astra CRM Enterprise Suite</option>
+                <option value="AI Sales Automation Module">AI Sales Automation Module</option>
+                <option value="Cloud Server Infrastructure">Cloud Server Infrastructure</option>
+                <option value="Omnichannel Communication Hub">Omnichannel Communication Hub</option>
+                <option value="Custom Software Development">Custom Software Development</option>
+                {(products || []).map(p => (
+                  <option key={p.id || p.name} value={p.name}>{p.name}</option>
+                ))}
               </select>
             </div>
 

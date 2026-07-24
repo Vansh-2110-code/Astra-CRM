@@ -827,6 +827,7 @@ export const CRMProvider = ({ children }) => {
         stage: 'Lead Intake',
         pipelineId: 'pipe-enterprise',
         owner: newLead.assignedTo || currentUser?.name || 'Sanna Admin',
+        productsInterested: [newLead.productNeeded || 'Astra CRM Enterprise Suite'],
         expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
       };
       setLocalDeals(prev => [dealEntry, ...prev.filter(d => d.id !== dealEntry.id)]);
@@ -848,6 +849,7 @@ export const CRMProvider = ({ children }) => {
         stage: 'Lead Intake',
         pipelineId: 'pipe-enterprise',
         owner: newLead.assignedTo || currentUser?.name || 'Sanna Admin',
+        productsInterested: [newLead.productNeeded || 'Astra CRM Enterprise Suite'],
         expectedCloseDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
       };
       setLocalDeals(prev => [dealEntry, ...prev]);

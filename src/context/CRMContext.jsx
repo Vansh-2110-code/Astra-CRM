@@ -639,19 +639,40 @@ export const CRMProvider = ({ children }) => {
     ? integrationsQuery.data
     : localIntegrations;
 
-  const [localEmployees, setLocalEmployees] = useState([
-    { id: "EMP-001", clientId: "client-001", name: "Sarah Jenkins", email: "sarah.jenkins@apexglobal.io", designation: "VP of Sales Operations", roleId: "role-admin", baseSalary: 95000, avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-002", clientId: "client-001", name: "Marcus Vance", email: "marcus.vance@sales.apex.io", designation: "Enterprise Sales Director", roleId: "role-mgr", baseSalary: 75000, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-003", clientId: "client-001", name: "Alex Rivera", email: "alex.rivera@sales.apex.io", designation: "Senior Account Executive", roleId: "role-exec", baseSalary: 55000, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-008", clientId: "client-001", name: "Elena Rostova", email: "elena.rostova@hr.apex.io", designation: "Head of Human Resources", roleId: "role-hr", baseSalary: 68000, avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-009", clientId: "client-001", name: "Vikram Patel", email: "vikram.patel@ops.apex.io", designation: "Director of Operations & Support", roleId: "role-ops", baseSalary: 72000, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-010", clientId: "client-001", name: "Dr. Aris Thorne", email: "a.thorne@biogenetics.org", designation: "CTO, BioGenetics Lab Solutions", roleId: "role-customer", baseSalary: 85000, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" },
-    { id: "EMP-SANNA-001", clientId: "client-sanna", name: "Sanna Admin", email: "admin@sannainnovations.com", designation: "Organization Administrator", roleId: "role-admin", baseSalary: 80000, avatar: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&auto=format&fit=crop&q=80" }
-  ]);
+  const [localEmployees, setLocalEmployees] = useState(() => {
+    const saved = localStorage.getItem('astra_local_employees');
+    return saved ? JSON.parse(saved) : [
+      { id: "EMP-001", clientId: "client-001", name: "Sarah Jenkins", email: "sarah.jenkins@apexglobal.io", designation: "VP of Sales Operations", roleId: "role-admin", baseSalary: 95000, avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" },
+      { id: "EMP-002", clientId: "client-001", name: "Marcus Vance", email: "marcus.vance@sales.apex.io", designation: "Enterprise Sales Director", roleId: "role-mgr", baseSalary: 75000, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" },
+      { id: "EMP-003", clientId: "client-001", name: "Alex Rivera", email: "alex.rivera@sales.apex.io", designation: "Senior Account Executive", roleId: "role-exec", baseSalary: 55000, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" },
+      { id: "EMP-008", clientId: "client-001", name: "Elena Rostova", email: "elena.rostova@hr.apex.io", designation: "Head of Human Resources", roleId: "role-hr", baseSalary: 68000, avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&auto=format&fit=crop&q=80" },
+      { id: "EMP-009", clientId: "client-001", name: "Vikram Patel", email: "vikram.patel@ops.apex.io", designation: "Director of Operations & Support", roleId: "role-ops", baseSalary: 72000, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
+      { id: "EMP-010", clientId: "client-001", name: "Dr. Aris Thorne", email: "a.thorne@biogenetics.org", designation: "CTO, BioGenetics Lab Solutions", roleId: "role-customer", baseSalary: 85000, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" },
+      { id: "EMP-SANNA-001", clientId: "client-sanna", name: "Sanna Admin", email: "admin@sannainnovations.com", designation: "Organization Administrator", roleId: "role-admin", baseSalary: 80000, avatar: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&auto=format&fit=crop&q=80" }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('astra_local_employees', JSON.stringify(localEmployees));
+  }, [localEmployees]);
 
   const createEmployeeMutation = useMutation({
     mutationFn: (empData) => api.post('/employees', empData),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] }),
+    onSuccess: (resData, newEmp) => {
+      queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] });
+      const serverRes = resData?.data || resData || {};
+      const newEntry = {
+        id: serverRes.id || `EMP-${Date.now()}`,
+        clientId: activeTenantId,
+        name: serverRes.name || newEmp.name,
+        email: serverRes.email || newEmp.email,
+        designation: serverRes.designation || newEmp.designation || 'Specialist',
+        roleId: serverRes.roleId || newEmp.roleId || 'role-exec',
+        baseSalary: parseInt(serverRes.baseSalary || newEmp.baseSalary || newEmp.salary || 50000, 10),
+        avatar: serverRes.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+      };
+      setLocalEmployees(prev => [newEntry, ...prev.filter(e => e.id !== newEntry.id && e.email !== newEntry.email)]);
+    },
     onError: (err, newEmp) => {
       console.warn('API create employee failed, applying local state:', err);
       const newEntry = {
@@ -664,14 +685,26 @@ export const CRMProvider = ({ children }) => {
         baseSalary: parseInt(newEmp.baseSalary || newEmp.salary || 50000, 10),
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
       };
-      setLocalEmployees(prev => [newEntry, ...prev]);
+      setLocalEmployees(prev => [newEntry, ...prev.filter(e => e.email !== newEntry.email)]);
     }
   });
 
   const updateEmployeeMutation = useMutation({
     mutationFn: ({ id, designation, roleId, baseSalary, salary }) => 
       api.put(`/employees/${id}`, { designation, roleId, baseSalary: baseSalary || salary, requesterRole: activeRole?.name }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] }),
+    onSuccess: (resData, { id, designation, roleId, baseSalary, salary }) => {
+      queryClient.invalidateQueries({ queryKey: ['employees', activeTenantId] });
+      setLocalEmployees(prev => prev.map(e => {
+        if (e.id === id) {
+          const updated = { ...e };
+          if (designation !== undefined) updated.designation = designation;
+          if (roleId !== undefined) updated.roleId = roleId;
+          if (baseSalary !== undefined || salary !== undefined) updated.baseSalary = parseInt(baseSalary || salary, 10);
+          return updated;
+        }
+        return e;
+      }));
+    },
     onError: (err, { id, designation, roleId, baseSalary, salary }) => {
       console.warn('API update employee failed, updating locally:', err);
       setLocalEmployees(prev => prev.map(e => {
@@ -687,12 +720,21 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
-  const resolvedEmployees = Array.isArray(employeesQuery.data) && employeesQuery.data.length > 0
-    ? employeesQuery.data.map(e => {
-        const localMatch = localEmployees.find(le => le.id === e.id);
-        return { ...e, baseSalary: localMatch?.baseSalary || e.baseSalary || 50000 };
-      })
-    : (localEmployees || []).filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
+  const tenantLocalEmployees = (localEmployees || []).filter(e => e.clientId === activeTenantId || activeTenantId === 'all');
+
+  let resolvedEmployees = [];
+  if (Array.isArray(employeesQuery.data) && employeesQuery.data.length > 0) {
+    const apiEmps = employeesQuery.data.map(e => {
+      const localMatch = localEmployees.find(le => le.id === e.id || le.email === e.email);
+      return { ...e, baseSalary: localMatch?.baseSalary || e.baseSalary || 50000 };
+    });
+    const apiIds = new Set(apiEmps.map(e => e.id));
+    const apiEmails = new Set(apiEmps.map(e => e.email));
+    const extraLocals = tenantLocalEmployees.filter(le => !apiIds.has(le.id) && !apiEmails.has(le.email));
+    resolvedEmployees = [...apiEmps, ...extraLocals];
+  } else {
+    resolvedEmployees = tenantLocalEmployees;
+  }
 
   const resolvedAuditLogs = Array.isArray(auditLogsQuery.data)
     ? auditLogsQuery.data

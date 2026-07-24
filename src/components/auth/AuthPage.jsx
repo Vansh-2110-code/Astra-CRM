@@ -394,9 +394,23 @@ const AuthPage = ({ onBackToLanding }) => {
               type="submit"
               disabled={loading}
               className="btn gradient-btn-primary"
-              style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '12px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', opacity: loading ? 0.7 : 1 }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                marginTop: '12px',
+                background: signupType === 'join' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                opacity: loading ? 0.7 : 1
+              }}
             >
-              <span>{loading ? 'Creating Workspace...' : 'Onboard & Launch Workspace'}</span>
+              <span>
+                {loading
+                  ? 'Processing Registration...'
+                  : signupType === 'join'
+                  ? '👥 Join & Register as Employee'
+                  : '🏢 Onboard & Launch New Company'
+                }
+              </span>
               <CheckCircle2 style={{ width: '18px', height: '18px' }} />
             </button>
           </form>
@@ -418,22 +432,40 @@ const AuthPage = ({ onBackToLanding }) => {
           </div>
         )}
 
-
-
         {/* Toggle Mode Footer */}
-        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {mode === 'login' ? (
-            <span>
-              New organization?{' '}
-              <button onClick={() => setMode('signup')} style={{ background: 'none', border: 'none', color: '#818cf8', fontWeight: '700', cursor: 'pointer' }}>
-                Onboard Company
-              </button>
-            </span>
+            <>
+              <div>
+                <span>Joining an onboarded company? </span>
+                <button
+                  onClick={() => {
+                    setMode('signup');
+                    setSignupType('join');
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#34d399', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  👥 Join Existing Company
+                </button>
+              </div>
+              <div>
+                <span>New organization? </span>
+                <button
+                  onClick={() => {
+                    setMode('signup');
+                    setSignupType('new');
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#818cf8', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  🏢 Onboard New Company
+                </button>
+              </div>
+            </>
           ) : (
             <span>
               Already registered?{' '}
               <button onClick={() => setMode('login')} style={{ background: 'none', border: 'none', color: '#818cf8', fontWeight: '700', cursor: 'pointer' }}>
-                Sign In
+                Sign In to Workspace
               </button>
             </span>
           )}

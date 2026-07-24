@@ -64,7 +64,9 @@ const SalaryModule = () => {
       const incomeTax = Math.round(gross * 0.10);
       const totalDeductions = pf + esi + profTax + incomeTax;
       const net = gross - totalDeductions;
-      const perDay = Math.round(net / 22);
+
+      // Base per-day rate based on Base Monthly Salary (22 working days per month)
+      const perDayBase = Math.round(base / 22);
 
       // Attendance-driven calculation
       const empAtt = (attendanceRecords || []).filter(r => r.employeeId === emp.id);
@@ -79,22 +81,25 @@ const SalaryModule = () => {
         calculatedDaysWorked = count;
       }
 
-      const accumulated = Math.round(perDay * calculatedDaysWorked);
+      // Accumulated MTD Base Pay strictly capped at Base Salary (so Accumulated MTD <= Base Salary)
+      const accumulatedBase = Math.min(base, Math.round(perDayBase * calculatedDaysWorked));
       const progress = Math.min((calculatedDaysWorked / 22) * 100, 100);
 
       return {
         ...emp,
         basicSalary: base, hra, transport, medical, special,
         grossSalary: gross, pf, esi, profTax, incomeTax,
-        totalDeductions, netSalary: net, perDay,
-        accumulated, progress, daysWorked: calculatedDaysWorked
+        totalDeductions, netSalary: net,
+        perDay: perDayBase,
+        accumulated: accumulatedBase,
+        progress, daysWorked: calculatedDaysWorked
       };
     });
   }, [employees, attendanceRecords, currentDay, daysInMonth]);
 
-  const totalMonthlyPayroll = employeeSalaryData.reduce((s, e) => s + e.netSalary, 0);
+  const totalBasePayroll = employeeSalaryData.reduce((s, e) => s + e.basicSalary, 0);
   const totalAccumulated = employeeSalaryData.reduce((s, e) => s + e.accumulated, 0);
-  const avgSalary = employeeSalaryData.length > 0 ? Math.round(totalMonthlyPayroll / employeeSalaryData.length) : 0;
+  const avgSalary = employeeSalaryData.length > 0 ? Math.round(totalBasePayroll / employeeSalaryData.length) : 0;
 
   const handleGenerateSlip = (e) => {
     e.preventDefault();
@@ -228,8 +233,8 @@ const SalaryModule = () => {
         <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #f59e0b' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Payroll</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#f59e0b' }}>{formatCurrency(totalMonthlyPayroll)}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Base Payroll</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#f59e0b' }}>{formatCurrency(totalBasePayroll)}</div>
             </div>
             <Wallet style={{ color: '#f59e0b', width: '28px', height: '28px' }} />
           </div>
@@ -284,8 +289,8 @@ const SalaryModule = () => {
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{emp.designation}</div>
                 </div>
 
-                <div style={{ flex: '0 0 100px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Per Day</div>
+                <div style={{ flex: '0 0 110px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Per Day (Base)</div>
                   <div style={{ fontWeight: '800', color: '#3b82f6' }}>{formatCurrency(emp.perDay)}</div>
                 </div>
 
@@ -310,9 +315,9 @@ const SalaryModule = () => {
                   </div>
                 </div>
 
-                <div style={{ flex: '0 0 120px', textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Accumulated</div>
-                  <div style={{ fontWeight: '800', fontSize: '1.1rem', color: '#10b981' }}>
+                <div style={{ flex: '0 0 130px', textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Accumulated (MTD)</div>
+                  <div style={{ fontWeight: '800', fontSize: '1.05rem', color: '#10b981' }}>
                     {formatCurrency(emp.accumulated)}
                   </div>
                 </div>
@@ -321,6 +326,13 @@ const SalaryModule = () => {
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Base Monthly</div>
                   <div style={{ fontWeight: '700', color: '#34d399' }}>
                     {formatCurrency(emp.basicSalary)}
+                  </div>
+                </div>
+
+                <div style={{ flex: '0 0 120px', textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Est. Net Pay</div>
+                  <div style={{ fontWeight: '700', color: '#a855f7', fontSize: '0.85rem' }}>
+                    {formatCurrency(emp.netSalary)}
                   </div>
                 </div>
 

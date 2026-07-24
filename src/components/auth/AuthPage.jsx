@@ -126,19 +126,17 @@ const AuthPage = ({ onBackToLanding }) => {
 
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{
-            width: '54px',
-            height: '54px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 12px auto',
-            boxShadow: '0 10px 25px rgba(99, 102, 241, 0.5)'
-          }}>
-            <Sparkles style={{ color: '#fff', width: '28px', height: '28px' }} />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Astra CRM Logo"
+            style={{
+              width: '64px',
+              height: '64px',
+              objectFit: 'contain',
+              margin: '0 auto 12px auto',
+              filter: 'drop-shadow(0 6px 16px rgba(239, 68, 68, 0.4))'
+            }}
+          />
 
           <h1 style={{
             fontSize: '1.8rem',

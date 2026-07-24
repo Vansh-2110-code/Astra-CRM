@@ -80,18 +80,16 @@ const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
         alignItems: 'center',
         gap: '12px'
       }}>
-        <div style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '12px',
-          background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 14px rgba(99, 102, 241, 0.5)'
-        }}>
-          <Sparkles style={{ color: '#fff', width: '22px', height: '22px' }} />
-        </div>
+        <img
+          src="/logo.png"
+          alt="Astra CRM Logo"
+          style={{
+            width: '40px',
+            height: '40px',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 4px 10px rgba(239, 68, 68, 0.4))'
+          }}
+        />
         <div>
           <h1 style={{ fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #fff 0%, #a5b4fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             ASTRA CRM

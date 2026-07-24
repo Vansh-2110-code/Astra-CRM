@@ -218,19 +218,17 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         zIndex: 100
       }}>
         {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 20px rgba(99, 102, 241, 0.5)'
-          }}>
-            <Sparkles style={{ color: '#fff', width: '24px', height: '24px' }} />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img
+            src="/logo.png"
+            alt="Astra CRM Logo"
+            style={{
+              width: '42px',
+              height: '42px',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 4px 12px rgba(239, 68, 68, 0.4))'
+            }}
+          />
           <div>
             <span style={{ fontSize: '1.35rem', fontWeight: '900', letterSpacing: '-0.03em', background: 'linear-gradient(135deg, #fff 0%, #c7d2fe 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               ASTRA CRM
@@ -1283,7 +1281,15 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Sparkles style={{ color: '#6366f1', width: '20px', height: '20px' }} />
+          <img
+            src="/logo.png"
+            alt="Astra CRM Logo"
+            style={{
+              width: '24px',
+              height: '24px',
+              objectFit: 'contain'
+            }}
+          />
           <span style={{ fontSize: '0.9rem', fontWeight: '800' }}>ASTRA CRM Enterprise Platform</span>
         </div>
 

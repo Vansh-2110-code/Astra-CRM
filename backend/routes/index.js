@@ -19,12 +19,14 @@ const tenantRoutes = require('./tenantRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const salaryRoutes = require('./salaryRoutes');
 const attendanceRoutes = require('./attendanceRoutes');
+const metaAdsRoutes = require('./metaAdsRoutes');
 
 // Swagger Documentation Page Route
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Open / public routes
 router.use('/auth', authRoutes);
+router.use('/integrations/meta-ads', metaAdsRoutes);
 
 // Protected routes (require token authentication & tenant context injection)
 router.use('/leads', authenticateToken, leadRoutes);

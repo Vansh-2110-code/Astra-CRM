@@ -367,6 +367,16 @@ export const CRMProvider = ({ children }) => {
       lastSync: '1 hour ago',
       status: 'Configured',
       icon: 'CreditCard'
+    },
+    {
+      id: 'int-104',
+      name: 'Meta Lead Ads API Engine',
+      category: 'Social Lead Generation',
+      details: 'Real-time Lead Ads intake from Facebook & Instagram ad campaigns via Meta Graph API (v19.0) Webhooks.',
+      connectedAccount: 'Page ID: 10049281048',
+      lastSync: 'Live Webhook Active',
+      status: 'Connected',
+      icon: 'PhoneCall'
     }
   ]);
   const [activeRoleId, setActiveRoleId] = useState(null);

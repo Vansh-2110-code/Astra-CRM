@@ -202,7 +202,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </div>
 
       {/* TOP NAVIGATION HEADER */}
-      <header style={{
+      <header className="landing-nav" style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -242,7 +242,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
 
         {/* Navigation Links */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <nav className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           <a href="#features" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '600', textDecoration: 'none', transition: 'color 0.2s' }}>Features</a>
           <a href="#architecture" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '600', textDecoration: 'none', transition: 'color 0.2s' }}>Zero-Trust Security</a>
           <a href="#pricing" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '600', textDecoration: 'none', transition: 'color 0.2s' }}>Pricing & Plans</a>
@@ -253,7 +253,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button
             onClick={() => setShowQuickModal(true)}
-            className="btn btn-secondary"
+            className="btn btn-secondary landing-nav-cta-secondary"
             style={{
               padding: '10px 18px',
               borderRadius: '12px',
@@ -267,7 +267,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
 
           <button
             onClick={onNavigateToAuth}
-            className="btn gradient-btn-primary"
+            className="btn gradient-btn-primary landing-nav-cta-primary"
             style={{
               padding: '10px 22px',
               borderRadius: '12px',
@@ -283,7 +283,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
       </header>
 
       {/* HERO SECTION */}
-      <section style={{
+      <section className="landing-hero" style={{
         position: 'relative',
         zIndex: 10,
         paddingTop: '160px',
@@ -295,7 +295,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         textAlign: 'center'
       }}>
         {/* Micro Security Badge */}
-        <div style={{
+        <div className="landing-hero-badge" style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
@@ -314,7 +314,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </div>
 
         {/* Main Headline */}
-        <h1 style={{
+        <h1 className="landing-hero-title" style={{
           fontSize: '4.2rem',
           fontWeight: '900',
           lineHeight: 1.1,
@@ -327,7 +327,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
           Accelerate Sales Operations & Automate Customer Lifecycles
         </h1>
 
-        <p style={{
+        <p className="landing-hero-subtitle" style={{
           fontSize: '1.25rem',
           color: '#94a3b8',
           maxWidth: '820px',
@@ -338,7 +338,7 @@ const LandingPage = ({ onNavigateToAuth, onQuickLogin }) => {
         </p>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '60px' }}>
+        <div className="landing-hero-buttons" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '60px' }}>
           <button
             onClick={() => handleLaunchDemo('sarah.jenkins@apexglobal.io')}
             className="btn gradient-btn-primary"

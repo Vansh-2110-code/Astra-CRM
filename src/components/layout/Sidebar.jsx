@@ -49,23 +49,29 @@ const MENU_ITEMS = [
   { id: 'salary', label: 'Salary & Payroll', icon: Wallet, category: 'HR' },
 ];
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
   const { activeTenant, activeRole, theme, setTheme, logout, currentUser } = useCRM();
 
   return (
-    <aside style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: 'var(--sidebar-width)',
-      height: '100vh',
-      background: 'var(--bg-secondary)',
-      borderRight: '1px solid var(--border-color)',
-      display: 'flex',
-      flexDirection: 'column',
-      zIndex: 100,
-      transition: 'all 0.3s ease'
-    }}>
+    <>
+      {/* Dark overlay backdrop on mobile */}
+      <div
+        className={`sidebar-overlay ${mobileOpen ? 'active' : ''}`}
+        onClick={onCloseMobile}
+      />
+      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`} style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: 'var(--sidebar-width)',
+        height: '100vh',
+        background: 'var(--bg-secondary)',
+        borderRight: '1px solid var(--border-color)',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 100,
+        transition: 'all 0.3s ease'
+      }}>
       {/* Brand Header */}
       <div style={{
         padding: '20px 24px',
@@ -306,6 +312,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
 

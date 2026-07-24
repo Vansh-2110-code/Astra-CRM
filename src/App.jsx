@@ -29,6 +29,12 @@ const MainLayout = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [viewMode, setViewMode] = useState('landing'); // 'landing' | 'auth'
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setMobileSidebarOpen(false); // auto-close sidebar on mobile when navigating
+  };
 
   // Handle Quick Demo Login from Cover Landing Page
   const handleQuickLogin = async (email) => {
@@ -107,8 +113,16 @@ const MainLayout = () => {
 
   return (
     <div className="app-container">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <Header onOpenQuickCreate={() => setShowQuickCreate(true)} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={handleTabChange}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+      <Header
+        onOpenQuickCreate={() => setShowQuickCreate(true)}
+        onToggleSidebar={() => setMobileSidebarOpen(prev => !prev)}
+      />
       
       <main className="main-content">
         {renderContent()}

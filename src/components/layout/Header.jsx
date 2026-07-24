@@ -4,15 +4,14 @@ import {
   Search,
   Bell,
   Building,
-  UserCheck,
-  Shield,
   Plus,
   CheckCircle2,
   AlertTriangle,
-  Lock
+  Lock,
+  Menu
 } from 'lucide-react';
 
-const Header = ({ onOpenQuickCreate }) => {
+const Header = ({ onOpenQuickCreate, onToggleSidebar }) => {
   const {
     allClients,
     activeTenant,
@@ -34,7 +33,7 @@ const Header = ({ onOpenQuickCreate }) => {
   };
 
   return (
-    <header style={{
+    <header className="app-header" style={{
       position: 'fixed',
       top: 0,
       left: 'var(--sidebar-width)',
@@ -47,10 +46,20 @@ const Header = ({ onOpenQuickCreate }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '0 28px',
-      zIndex: 90
+      zIndex: 90,
+      gap: '16px'
     }}>
+      {/* Hamburger button — visible only on mobile via CSS */}
+      <button
+        className="mobile-menu-btn"
+        onClick={onToggleSidebar}
+        aria-label="Toggle navigation menu"
+      >
+        <Menu style={{ width: '24px', height: '24px' }} />
+      </button>
+
       {/* Global Search Bar */}
-      <div style={{ position: 'relative', width: '340px' }}>
+      <div style={{ position: 'relative', flex: '1', maxWidth: '340px', minWidth: '120px' }}>
         <Search style={{
           position: 'absolute',
           left: '12px',
@@ -78,20 +87,28 @@ const Header = ({ onOpenQuickCreate }) => {
       </div>
 
       {/* Right Header Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
 
-        {/* Client Tenant Display (Locked to logged-in company) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-primary)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-          <Building style={{ width: '15px', height: '15px', color: '#60a5fa' }} />
-          <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)' }}>Tenant:</span>
-          <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-            {activeTenant?.name} ({activeTenant?.plan || 'Enterprise'})
+        {/* Tenant Badge */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'var(--bg-primary)',
+          padding: '6px 10px',
+          borderRadius: '10px',
+          border: '1px solid var(--border-color)',
+          whiteSpace: 'nowrap'
+        }}>
+          <Building style={{ width: '14px', height: '14px', color: '#60a5fa', flexShrink: 0 }} />
+          <span style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)' }}>Tenant:</span>
+          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+            {activeTenant?.name}
           </span>
-          <Lock style={{ width: '12px', height: '12px', color: '#a5b4fc', marginLeft: '4px' }} title="Locked to logged-in organization" />
+          <Lock style={{ width: '11px', height: '11px', color: '#a5b4fc' }} title="Locked to organization" />
         </div>
 
-
-        {/* Notifications Dropdown Toggle */}
+        {/* Notifications */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
@@ -105,7 +122,8 @@ const Header = ({ onOpenQuickCreate }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              flexShrink: 0
             }}
           >
             <Bell style={{ width: '18px', height: '18px', color: 'var(--text-primary)' }} />
@@ -131,22 +149,21 @@ const Header = ({ onOpenQuickCreate }) => {
             )}
           </button>
 
-          {/* Notifications Panel */}
           {showNotifications && (
             <div style={{
               position: 'absolute',
               top: '48px',
               right: 0,
-              width: '320px',
+              width: '300px',
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-color)',
               borderRadius: '12px',
               boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
               padding: '16px',
-              zIndex: 100
+              zIndex: 200
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h4 style={{ fontSize: '0.85rem', fontWeight: '700' }}>System Notifications</h4>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: '700' }}>Notifications</h4>
                 {unreadCount > 0 && (
                   <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: '0.75rem', cursor: 'pointer' }}>
                     Mark read
@@ -162,8 +179,13 @@ const Header = ({ onOpenQuickCreate }) => {
                     border: '1px solid var(--border-color)',
                     fontSize: '0.8rem'
                   }}>
-                    <div style={{ fontWeight: '700', color: n.unread ? '#60a5fa' : 'var(--text-primary)' }}>{n.title}</div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '2px' }}>{n.message}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                      {n.unread
+                        ? <AlertTriangle style={{ width: '13px', height: '13px', color: '#f59e0b' }} />
+                        : <CheckCircle2 style={{ width: '13px', height: '13px', color: '#10b981' }} />}
+                      <span style={{ fontWeight: '700', color: n.unread ? '#60a5fa' : 'var(--text-primary)' }}>{n.title}</span>
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{n.message}</div>
                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px' }}>{n.time}</div>
                   </div>
                 ))}
@@ -172,11 +194,11 @@ const Header = ({ onOpenQuickCreate }) => {
           )}
         </div>
 
-        {/* Quick Action Button */}
+        {/* Quick Create */}
         <button
           onClick={onOpenQuickCreate}
           className="btn gradient-btn-primary"
-          style={{ borderRadius: '10px' }}
+          style={{ borderRadius: '10px', flexShrink: 0 }}
         >
           <Plus style={{ width: '16px', height: '16px' }} />
           <span>Quick Create</span>

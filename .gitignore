@@ -28,4 +28,7 @@ dist-ssr
 backend/.env
 backend/node_modules
 backend/db.json
+*.tar.gz
+*.zip
+
 

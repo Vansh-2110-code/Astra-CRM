@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import DarkModeToggle from '../ui/DarkModeToggle';
 import {
   Package,
   Plus,
@@ -29,6 +30,8 @@ const ProductCatalog = () => {
     variantsStr: '',
     description: ''
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.sku.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const handleOpenAddModal = () => {
     setEditingProductId(null);
@@ -120,11 +123,23 @@ const ProductCatalog = () => {
           <Plus style={{ width: '18px', height: '18px' }} />
           <span>Add Product SKU</span>
         </button>
+        <DarkModeToggle />
       </div>
 
       {/* Product Cards Grid */}
+      {/* Search Input */}
+      <div style={{ marginBottom: '16px' }}>
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="form-input"
+          style={{ width: '100%', maxWidth: '300px' }}
+        />
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-        {products.map(prod => (
+        {filteredProducts.map(prod => (
           <div key={prod.id} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>

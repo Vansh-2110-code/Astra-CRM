@@ -4,9 +4,11 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../config/swagger');
 
 const { authenticateToken } = require('../middleware/authMiddleware');
+const { validatePublicKey } = require('../middleware/publicKey');
 
 const authRoutes = require('./authRoutes');
 const leadRoutes = require('./leadRoutes');
+const publicLeadRoutes = require('./publicLeadRoutes');
 const dealRoutes = require('./dealRoutes');
 const quoteRoutes = require('./quoteRoutes');
 const orderRoutes = require('./orderRoutes');
@@ -29,6 +31,8 @@ router.use('/auth', authRoutes);
 router.use('/integrations/meta-ads', metaAdsRoutes);
 
 // Protected routes (require token authentication & tenant context injection)
+// Public lead submission endpoint (no auth, uses API key)
+router.use('/public-leads', publicLeadRoutes);
 router.use('/leads', authenticateToken, leadRoutes);
 router.use('/deals', authenticateToken, dealRoutes);
 router.use('/quotes', authenticateToken, quoteRoutes);

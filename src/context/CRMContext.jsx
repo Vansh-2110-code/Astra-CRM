@@ -142,6 +142,15 @@ export const CRMProvider = ({ children }) => {
       }
     ];
   });
+  const [localOrders, setLocalOrders] = useState(() => {
+    const saved = localStorage.getItem('astra_orders');
+    return saved ? JSON.parse(saved) : [
+      { id: "ORD-2026-441", clientId: "client-001", customerName: "Acme Corporation", totalValue: 49137, status: "Processing", quoteId: "QT-2026-880", createdDate: "2026-07-05" }
+    ];
+  });
+  useEffect(() => {
+    localStorage.setItem('astra_orders', JSON.stringify(localOrders));
+  }, [localOrders]);
   const [localSalarySlips, setLocalSalarySlips] = useState(() => {
     const saved = localStorage.getItem('astra_salary_slips');
     return saved ? JSON.parse(saved) : [];
@@ -682,9 +691,9 @@ export const CRMProvider = ({ children }) => {
     ? quotesQuery.data
     : (localQuotes || []).filter(q => q.clientId === activeTenantId || activeTenantId === 'all');
 
-  const resolvedOrders = Array.isArray(ordersQuery.data)
+  const resolvedOrders = (Array.isArray(ordersQuery.data) && ordersQuery.data.length > 0)
     ? ordersQuery.data
-    : [];
+    : (localOrders || []).filter(o => o.clientId === activeTenantId || activeTenantId === 'all');
 
   const resolvedTickets = Array.isArray(ticketsQuery.data)
     ? ticketsQuery.data
@@ -894,6 +903,22 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const createOrderMutation = useMutation({
+    mutationFn: (orderData) => api.post('/orders', orderData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', activeTenantId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
+    },
+    onError: (err, newOrder) => {
+      setLocalOrders(prev => [{
+        id: `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        clientId: activeTenantId,
+        createdDate: new Date().toISOString().split('T')[0],
+        ...newOrder
+      }, ...prev]);
+    }
+  });
+
   const generateSalarySlipMutation = useMutation({
     mutationFn: (slipData) => api.post('/salary/generate', slipData),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['salarySlips', activeTenantId] }),
@@ -1054,7 +1079,7 @@ export const CRMProvider = ({ children }) => {
         const target = resolvedQuotes.find(q => q.id === id);
         if (target) target.status = 'Accepted';
       }, convertQuoteToOrder: (quoteId) => {},
-      orders: resolvedOrders,
+      orders: resolvedOrders, createOrder: createOrderMutation.mutateAsync,
       tickets: resolvedTickets, createTicket: (tData) => {},
       tasks, addTask: (tData) => setTasks(prev => [{ id: `tsk-${Date.now()}`, status: 'Pending', ...tData }, ...prev]), toggleTaskStatus: (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status: t.status === 'Completed' ? 'Pending' : 'Completed' } : t)),
       campaigns, addCampaign: (cData) => setCampaigns(prev => [{ id: `cmp-${Date.now()}`, openRatePercent: 45.0, clickRatePercent: 20.0, convertedLeads: 5, estimatedROI: '250%', startDate: new Date().toISOString().split('T')[0], sentCount: 500, status: 'Active', ...cData }, ...prev]),

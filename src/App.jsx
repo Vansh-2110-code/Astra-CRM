@@ -21,6 +21,7 @@ import CustomerManager from './components/customers/CustomerManager';
 import SalaryModule from './components/salary/SalaryModule';
 import AISalesAssistant from './components/leads/AISalesAssistant';
 import ReportsEngine from './components/reports/ReportsEngine';
+import OngoingProjects from './components/pipeline/OngoingProjects';
 
 import LandingPage from './components/landing/LandingPage';
 
@@ -94,6 +95,8 @@ const MainLayout = () => {
       case 'activities':
       case 'tasks':
         return <TaskBoard />;
+      case 'ongoing-projects':
+        return <OngoingProjects />;
       case 'support':
         return <TicketManager />;
       case 'customers':

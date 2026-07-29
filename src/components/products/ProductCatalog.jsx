@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
-import DarkModeToggle from '../ui/DarkModeToggle';
 import {
   Package,
   Plus,
@@ -123,7 +122,6 @@ const ProductCatalog = () => {
           <Plus style={{ width: '18px', height: '18px' }} />
           <span>Add Product SKU</span>
         </button>
-        <DarkModeToggle />
       </div>
 
       {/* Product Cards Grid */}

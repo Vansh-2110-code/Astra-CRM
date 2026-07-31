@@ -35,7 +35,16 @@ class OrderService {
       bankAccountType,
       bankAccountNumber,
       bankIfscCode,
-      bankBranch
+      bankBranch,
+      dealId,
+      paymentStatus,
+      paidAmount,
+      remainingAmount,
+      pastAdvancePaid,
+      pastInstallmentsPaid,
+      totalPaidSoFar,
+      projectContractValue,
+      remainingProjectRevenue
     } = orderData;
 
     const order = await OrderRepository.create({
@@ -60,7 +69,7 @@ class OrderService {
       taxTotal: parseFloat(taxTotal) || 0,
       shipping: parseFloat(shipping) || 0,
       grandTotal: parseFloat(grandTotal) || 0,
-      sellerName: sellerName || 'Sanna Innovations',
+      sellerName: sellerName || 'Vertex Innovations',
       sellerLogo,
       sellerAddress,
       sellerWebsite,
@@ -70,10 +79,57 @@ class OrderService {
       bankAccountType,
       bankAccountNumber,
       bankIfscCode,
-      bankBranch
+      bankBranch,
+      dealId,
+      paymentStatus: paymentStatus || 'Paid',
+      paidAmount: parseFloat(paidAmount) || 0,
+      remainingAmount: parseFloat(remainingAmount) || 0,
+      pastAdvancePaid: parseFloat(pastAdvancePaid) || 0,
+      pastInstallmentsPaid: parseFloat(pastInstallmentsPaid) || 0,
+      totalPaidSoFar: parseFloat(totalPaidSoFar) || 0,
+      projectContractValue: parseFloat(projectContractValue) || 0,
+      remainingProjectRevenue: parseFloat(remainingProjectRevenue) || 0
     });
 
     return order;
+  }
+
+  async updateOrder(tenantId, id, orderData) {
+    const updatePayload = {};
+    const allowedFields = [
+      'customerName', 'totalValue', 'status', 'quoteId', 'invoiceNumber',
+      'invoiceType', 'invoiceDate', 'customerAddress', 'customerState', 'customerGstin',
+      'reverseCharge', 'items', 'subtotal', 'cgstAmount', 'sgstAmount',
+      'taxTotal', 'shipping', 'grandTotal', 'sellerName', 'sellerLogo',
+      'sellerAddress', 'sellerWebsite', 'sellerGstin', 'bankName', 'bankAccountName',
+      'bankAccountType', 'bankAccountNumber', 'bankIfscCode', 'bankBranch',
+      'dealId', 'paymentStatus', 'paidAmount', 'remainingAmount', 'pastAdvancePaid',
+      'pastInstallmentsPaid', 'totalPaidSoFar', 'projectContractValue', 'remainingProjectRevenue'
+    ];
+
+    for (const key of allowedFields) {
+      if (orderData[key] !== undefined) {
+        updatePayload[key] = orderData[key];
+      }
+    }
+
+    if (updatePayload.grandTotal !== undefined && updatePayload.totalValue === undefined) {
+      updatePayload.totalValue = parseFloat(updatePayload.grandTotal) || 0;
+    }
+
+    const updated = await OrderRepository.updateForTenant(tenantId, id, updatePayload);
+    if (!updated) {
+      throw new Error('Order not found or access denied.');
+    }
+    return updated;
+  }
+
+  async deleteOrder(tenantId, id) {
+    const deleted = await OrderRepository.deleteForTenant(tenantId, id);
+    if (!deleted) {
+      throw new Error('Order not found or access denied.');
+    }
+    return true;
   }
 }
 

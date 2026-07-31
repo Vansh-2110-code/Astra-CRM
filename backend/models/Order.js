@@ -109,7 +109,7 @@ const Order = sequelize.define('Order', {
   sellerName: {
     type: DataTypes.STRING,
     field: 'seller_name',
-    defaultValue: 'Sanna Innovations'
+    defaultValue: 'Vertex Innovations'
   },
   sellerLogo: {
     type: DataTypes.TEXT,
@@ -160,6 +160,52 @@ const Order = sequelize.define('Order', {
     type: DataTypes.STRING,
     field: 'bank_branch',
     allowNull: true
+  },
+  // Deal & Payment status tracking fields
+  dealId: {
+    type: DataTypes.STRING,
+    field: 'deal_id',
+    allowNull: true
+  },
+  paymentStatus: {
+    type: DataTypes.STRING,
+    field: 'payment_status',
+    defaultValue: 'Paid'
+  },
+  paidAmount: {
+    type: DataTypes.DOUBLE,
+    field: 'paid_amount',
+    defaultValue: 0
+  },
+  remainingAmount: {
+    type: DataTypes.DOUBLE,
+    field: 'remaining_amount',
+    defaultValue: 0
+  },
+  pastAdvancePaid: {
+    type: DataTypes.DOUBLE,
+    field: 'past_advance_paid',
+    defaultValue: 0
+  },
+  pastInstallmentsPaid: {
+    type: DataTypes.DOUBLE,
+    field: 'past_installments_paid',
+    defaultValue: 0
+  },
+  totalPaidSoFar: {
+    type: DataTypes.DOUBLE,
+    field: 'total_paid_so_far',
+    defaultValue: 0
+  },
+  projectContractValue: {
+    type: DataTypes.DOUBLE,
+    field: 'project_contract_value',
+    defaultValue: 0
+  },
+  remainingProjectRevenue: {
+    type: DataTypes.DOUBLE,
+    field: 'remaining_project_revenue',
+    defaultValue: 0
   }
 }, {
   tableName: 'orders',

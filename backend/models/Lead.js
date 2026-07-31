@@ -55,6 +55,16 @@ const Lead = sequelize.define('Lead', {
     type: DataTypes.DOUBLE,
     defaultValue: 0,
     field: 'potential_value'
+  },
+  projectCategory: {
+    type: DataTypes.STRING,
+    field: 'project_category',
+    defaultValue: 'Software Development'
+  },
+  projectType: {
+    type: DataTypes.STRING,
+    field: 'project_type',
+    defaultValue: 'One Time'
   }
 }, {
   tableName: 'leads',

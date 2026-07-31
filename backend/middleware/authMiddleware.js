@@ -14,7 +14,7 @@ async function authenticateToken(req, res, next) {
     // Verify token using cryptographical JWT signature check
     jwt.verify(token, jwtSecret, async (err, decoded) => {
       if (err) {
-        return res.status(403).json({ error: "Access Forbidden: Invalid Cryptographic Token Signature" });
+        return res.status(401).json({ error: "Session expired or invalid token. Please log in again." });
       }
 
       // Securely-derived tenant context from decrypted JWT payload claims (preventing BOLA SEC-01)

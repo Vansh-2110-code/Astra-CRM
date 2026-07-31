@@ -41,13 +41,6 @@ const getStatusStyle = (status) => {
   }
 };
 
-const getProgressValue = (deal) => {
-  if (deal.projectProgress != null) return deal.projectProgress;
-  // Derive progress from deal metadata if available
-  if (deal.stage === 'Won') return Math.floor(Math.random() * 45) + 40; // 40-85%
-  return 0;
-};
-
 // Stable progress values using deal id hash (no re-render jitter)
 const stableProgress = (deal) => {
   let hash = 0;
@@ -58,17 +51,126 @@ const stableProgress = (deal) => {
   return (Math.abs(hash) % 50) + 35; // 35-85%
 };
 
+const getProgressValue = (deal) => {
+  if (deal.projectProgress !== undefined && deal.projectProgress !== null) {
+    return parseInt(deal.projectProgress, 10);
+  }
+  return stableProgress(deal);
+};
+
 const OngoingProjects = () => {
-  const { deals, updateDealStage, currentUser } = useCRM();
+  const { deals = [], orders = [], updateDeal, currentUser } = useCRM();
 
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [selectedProject, setSelectedProject] = useState(null);
 
+  const handleUpdateStatus = async (dealId, newStatus) => {
+    try {
+      if (updateDeal) {
+        const target = deals.find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
+        await updateDeal(dealId, {
+          company: target?.company,
+          title: target?.title,
+          dealValue: target?.dealValue,
+          projectStatus: newStatus
+        });
+        if (selectedProject && (selectedProject.id === dealId || `deal-${selectedProject.id}` === dealId)) {
+          setSelectedProject(prev => ({ ...prev, projectStatus: newStatus }));
+        }
+      }
+    } catch (err) {
+      console.error("Error updating project status:", err);
+      alert("Failed to update status: " + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleUpdateProgress = async (dealId, newProgress) => {
+    const val = Math.min(100, Math.max(0, parseInt(newProgress, 10) || 0));
+    try {
+      if (updateDeal) {
+        const target = deals.find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
+        await updateDeal(dealId, {
+          company: target?.company,
+          title: target?.title,
+          dealValue: target?.dealValue,
+          projectProgress: val
+        });
+        if (selectedProject && (selectedProject.id === dealId || `deal-${selectedProject.id}` === dealId)) {
+          setSelectedProject(prev => ({ ...prev, projectProgress: val }));
+        }
+      }
+    } catch (err) {
+      console.error("Error updating project progress:", err);
+      alert("Failed to update progress: " + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleUpdateDeadline = async (dealId, newDeadline) => {
+    try {
+      if (updateDeal) {
+        const target = deals.find(d => d.id === dealId || `deal-${d.id}` === dealId) || selectedProject;
+        await updateDeal(dealId, {
+          company: target?.company,
+          title: target?.title,
+          dealValue: target?.dealValue,
+          projectDeadline: newDeadline
+        });
+        if (selectedProject && (selectedProject.id === dealId || `deal-${selectedProject.id}` === dealId)) {
+          setSelectedProject(prev => ({ ...prev, projectDeadline: newDeadline }));
+        }
+      }
+    } catch (err) {
+      console.error("Error updating deadline:", err);
+      alert("Failed to update deadline: " + (err.response?.data?.error || err.message));
+    }
+  };
+
   // All Closed Won deals auto-populate here
   const wonDeals = useMemo(() => {
     return deals.filter(d => d.stage === 'Won' || d.stage === 'Closed Won');
   }, [deals]);
+
+  // Helper to compute revenue received per deal from orders
+  const getProjectRevenueStats = (deal) => {
+    const projectOrders = (orders || []).filter(o => 
+      (o.dealId && o.dealId === deal.id) || 
+      (o.customerName && deal.company && o.customerName.toLowerCase().trim() === deal.company.toLowerCase().trim())
+    );
+
+    const revenueReceived = projectOrders.reduce((sum, o) => {
+      const totalVal = parseFloat(o.grandTotal || o.totalValue || o.totalAmount || 0);
+      const paidAmt = parseFloat(o.paidAmount);
+      const statusStr = (o.status || '').toLowerCase();
+      const payStatusStr = (o.paymentStatus || '').toLowerCase();
+
+      if (statusStr === 'paid' || statusStr === 'completed' || statusStr === 'shipped' || payStatusStr === 'paid') {
+        return sum + ((!isNaN(paidAmt) && paidAmt > 0) ? paidAmt : totalVal);
+      }
+      if (!isNaN(paidAmt) && paidAmt > 0) {
+        return sum + paidAmt;
+      }
+      if (statusStr.includes('partial') || payStatusStr.includes('partial')) {
+        const remaining = parseFloat(o.remainingAmount);
+        if (!isNaN(remaining) && remaining < totalVal) {
+          return sum + Math.max(0, totalVal - remaining);
+        }
+      }
+      return sum;
+    }, 0);
+
+    const totalCost = deal.dealValue || 0;
+    const remainingRevenue = Math.max(0, totalCost - revenueReceived);
+    const collectionPercent = totalCost > 0 ? Math.min(100, Math.round((revenueReceived / totalCost) * 100)) : 0;
+
+    return {
+      revenueReceived,
+      remainingRevenue,
+      totalCost,
+      collectionPercent,
+      invoicesCount: projectOrders.length
+    };
+  };
 
   const filteredProjects = useMemo(() => {
     return wonDeals.filter(deal => {
@@ -87,10 +189,11 @@ const OngoingProjects = () => {
 
   // Summary stats
   const totalValue = wonDeals.reduce((sum, d) => sum + (d.dealValue || 0), 0);
+  const totalRevenueCollected = wonDeals.reduce((sum, d) => sum + getProjectRevenueStats(d).revenueReceived, 0);
+  const totalRemainingRevenue = Math.max(0, totalValue - totalRevenueCollected);
   const inProgressCount = wonDeals.filter(d => getProjectStatus(d) === 'In Progress').length;
-  const deliveredCount = wonDeals.filter(d => getProjectStatus(d) === 'Delivered').length;
   const avgProgress = wonDeals.length
-    ? Math.round(wonDeals.reduce((sum, d) => sum + stableProgress(d), 0) / wonDeals.length)
+    ? Math.round(wonDeals.reduce((sum, d) => sum + getProgressValue(d), 0) / wonDeals.length)
     : 0;
 
   return (
@@ -107,7 +210,7 @@ const OngoingProjects = () => {
             Ongoing Projects
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
-            Every deal marked <strong style={{ color: '#34d399' }}>Closed Won</strong> in the Sales Pipeline automatically appears here for operational tracking.
+            Track project deliverables, received revenue, and <strong style={{ color: '#fbbf24' }}>remaining project revenue to be collected</strong>.
           </p>
         </div>
 
@@ -121,93 +224,74 @@ const OngoingProjects = () => {
             <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#60a5fa' }}>{inProgressCount}</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>In Progress</div>
           </div>
-          <div style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '12px', padding: '12px 18px', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#818cf8' }}>${(totalValue / 1000).toFixed(0)}K</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Total Value</div>
+          <div style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '12px', padding: '12px 18px', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#fbbf24' }}>${totalRemainingRevenue.toLocaleString()}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Remaining Rev</div>
+          </div>
+          <div style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '12px', padding: '12px 18px', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#c084fc' }}>{avgProgress}%</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Avg Completion</div>
           </div>
         </div>
       </div>
 
-      {/* Summary Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        {[
-          { label: 'Avg. Completion', value: `${avgProgress}%`, icon: Target, color: '#818cf8', bg: 'rgba(99,102,241,0.12)' },
-          { label: 'Delivered', value: deliveredCount, icon: Award, color: '#34d399', bg: 'rgba(16,185,129,0.12)' },
-          { label: 'On Hold', value: wonDeals.filter(d => getProjectStatus(d) === 'On Hold').length, icon: Clock, color: '#fbbf24', bg: 'rgba(245,158,11,0.12)' },
-          { label: 'Portfolio Value', value: `$${totalValue.toLocaleString()}`, icon: TrendingUp, color: '#c084fc', bg: 'rgba(192,132,252,0.12)' },
-        ].map(stat => (
-          <div key={stat.label} className="glass-card" style={{ padding: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ background: stat.bg, borderRadius: '12px', padding: '10px', flexShrink: 0 }}>
-              <stat.icon style={{ width: '20px', height: '20px', color: stat.color }} />
-            </div>
-            <div>
-              <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--text-primary)' }}>{stat.value}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>{stat.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div className="glass-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '6px 12px', flex: 1, minWidth: '200px' }}>
-          <Search style={{ width: '16px', height: '16px', color: 'var(--text-muted)', flexShrink: 0 }} />
+      {/* Filter Bar */}
+      <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '240px' }}>
+          <Search style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
           <input
             type="text"
-            placeholder="Search projects, companies, owners..."
+            placeholder="Search projects by title, company, owner..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.85rem', color: 'var(--text-primary)', width: '100%' }}
+            className="form-input"
+            style={{ width: '100%', fontSize: '0.85rem' }}
           />
         </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Filter style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Status:</span>
-        </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {STATUS_OPTIONS.map(s => (
+          <Filter style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} />
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '700' }}>Status:</span>
+          {STATUS_OPTIONS.map(status => (
             <button
-              key={s}
-              onClick={() => setFilterStatus(s)}
+              key={status}
+              onClick={() => setFilterStatus(status)}
               style={{
-                padding: '5px 14px',
+                padding: '6px 14px',
                 borderRadius: '20px',
-                border: filterStatus === s ? '1px solid #34d399' : '1px solid var(--border-color)',
-                background: filterStatus === s ? 'rgba(16,185,129,0.18)' : 'var(--bg-primary)',
-                color: filterStatus === s ? '#34d399' : 'var(--text-secondary)',
-                fontSize: '0.78rem',
+                fontSize: '0.75rem',
                 fontWeight: '700',
                 cursor: 'pointer',
+                border: filterStatus === status ? '1px solid #34d399' : '1px solid var(--border-color)',
+                background: filterStatus === status ? 'rgba(16,185,129,0.18)' : 'var(--bg-input)',
+                color: filterStatus === status ? '#34d399' : 'var(--text-secondary)',
                 transition: 'all 0.15s ease'
               }}
             >
-              {s}
+              {status}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Project Cards Grid */}
+      {/* Projects Grid */}
       {filteredProjects.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '60px', textAlign: 'center' }}>
-          <div style={{ background: 'rgba(16,185,129,0.1)', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-            <FolderKanban style={{ width: '40px', height: '40px', color: '#34d399' }} />
-          </div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px' }}>
-            {wonDeals.length === 0 ? 'No Projects Yet' : 'No Matching Projects'}
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '380px', margin: '0 auto' }}>
+        <div className="glass-panel" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <Layers style={{ width: '44px', height: '44px', opacity: 0.4, marginBottom: '12px' }} />
+          <h4 style={{ fontSize: '1.1rem', fontWeight: '800', margin: '0 0 6px', color: 'var(--text-primary)' }}>No Ongoing Projects Found</h4>
+          <p style={{ fontSize: '0.85rem', margin: 0 }}>
             {wonDeals.length === 0
-              ? 'When you mark a deal as "Closed Won" in the Sales Pipeline Kanban, it will automatically appear here as an ongoing project.'
-              : 'Try adjusting your search or filter to find what you\'re looking for.'}
+              ? 'Move deals to "Won" or "Closed Won" in the Sales Pipeline to auto-populate projects here.'
+              : 'No projects match your current search or status filter.'}
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '18px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
           {filteredProjects.map(deal => {
-            const progress = stableProgress(deal);
             const status = getProjectStatus(deal);
             const statusStyle = getStatusStyle(status);
+            const progress = getProgressValue(deal);
+            const revStats = getProjectRevenueStats(deal);
 
             return (
               <div
@@ -257,29 +341,34 @@ const OngoingProjects = () => {
                   {deal.title}
                 </h3>
 
-                {/* Meta info */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    <DollarSign style={{ width: '12px', height: '12px', color: '#34d399' }} />
-                    <span style={{ fontWeight: '800', color: '#34d399' }}>${(deal.dealValue || 0).toLocaleString()}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>deal value</span>
-                  </div>
+                {/* Meta info & Revenue Breakdown */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                     <User style={{ width: '12px', height: '12px', color: 'var(--text-muted)' }} />
                     <span>Owner: <strong style={{ color: 'var(--text-primary)' }}>{deal.owner || 'Unassigned'}</strong></span>
                   </div>
-                  {deal.expectedCloseDate && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      <Calendar style={{ width: '12px', height: '12px', color: 'var(--text-muted)' }} />
-                      <span>Closed: <strong style={{ color: 'var(--text-primary)' }}>{deal.expectedCloseDate}</strong></span>
+
+                  {/* Revenue Card Summary Box */}
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '10px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem' }}>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>Total Cost</div>
+                      <div style={{ fontWeight: '800', color: '#38bdf8' }}>${(revStats.totalCost).toLocaleString()}</div>
                     </div>
-                  )}
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>Rev Collected</div>
+                      <div style={{ fontWeight: '800', color: '#34d399' }}>${(revStats.revenueReceived).toLocaleString()}</div>
+                    </div>
+                    <div style={{ gridColumn: 'span 2', borderTop: '1px solid var(--border-color)', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#fbbf24', fontWeight: '700', fontSize: '0.7rem' }}>Remaining Revenue to Come:</span>
+                      <span style={{ fontWeight: '900', color: '#fbbf24', fontSize: '0.85rem' }}>${(revStats.remainingRevenue).toLocaleString()}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div style={{ marginBottom: '14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Project Progress</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Project Deliverable Progress</span>
                     <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#34d399' }}>{progress}%</span>
                   </div>
                   <div style={{ height: '6px', background: 'var(--bg-input)', borderRadius: '99px', overflow: 'hidden' }}>
@@ -295,18 +384,26 @@ const OngoingProjects = () => {
 
                 {/* Footer: status + open */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    fontWeight: '800',
-                    padding: '4px 10px',
-                    borderRadius: '20px',
-                    background: statusStyle.bg,
-                    color: statusStyle.color,
-                    border: `1px solid ${statusStyle.border}`,
-                    textTransform: 'uppercase'
-                  }}>
-                    {status}
-                  </span>
+                  <select
+                    value={status}
+                    onClick={e => e.stopPropagation()}
+                    onChange={e => handleUpdateStatus(deal.id, e.target.value)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      background: statusStyle.bg,
+                      color: statusStyle.color,
+                      border: `1px solid ${statusStyle.border}`,
+                      fontSize: '0.72rem',
+                      fontWeight: '800',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="In Progress" style={{ background: '#1e293b', color: '#fff' }}>In Progress</option>
+                    <option value="On Hold" style={{ background: '#1e293b', color: '#fff' }}>On Hold</option>
+                    <option value="Delivered" style={{ background: '#1e293b', color: '#fff' }}>Delivered</option>
+                  </select>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     View Details <ChevronRight style={{ width: '12px', height: '12px' }} />
                   </span>
@@ -351,7 +448,7 @@ const OngoingProjects = () => {
                 {[
                   { label: 'Deal Value', value: `$${(selectedProject.dealValue || 0).toLocaleString()}`, color: '#34d399' },
                   { label: 'Win Probability', value: `${selectedProject.probability || 100}%`, color: '#818cf8' },
-                  { label: 'Progress', value: `${stableProgress(selectedProject)}%`, color: '#60a5fa' },
+                  { label: 'Progress', value: `${getProgressValue(selectedProject)}%`, color: '#60a5fa' },
                 ].map(m => (
                   <div key={m.label} style={{ background: 'var(--bg-input)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
                     <div style={{ fontSize: '1.2rem', fontWeight: '900', color: m.color }}>{m.value}</div>
@@ -360,7 +457,7 @@ const OngoingProjects = () => {
                 ))}
               </div>
 
-              {/* Details */}
+              {/* Details & Target Deadline Editor */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.83rem' }}>
                 <div style={{ background: 'var(--bg-input)', borderRadius: '10px', padding: '12px', border: '1px solid var(--border-color)' }}>
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Deal Owner</div>
@@ -370,26 +467,48 @@ const OngoingProjects = () => {
                   </div>
                 </div>
                 <div style={{ background: 'var(--bg-input)', borderRadius: '10px', padding: '12px', border: '1px solid var(--border-color)' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Close Date</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Target Deadline</div>
                   <div style={{ fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar style={{ width: '14px', height: '14px', color: '#34d399' }} />
-                    {selectedProject.expectedCloseDate || 'N/A'}
+                    <input
+                      type="date"
+                      value={selectedProject.projectDeadline || selectedProject.expectedCloseDate || ''}
+                      onChange={e => handleUpdateDeadline(selectedProject.id, e.target.value)}
+                      className="form-input"
+                      style={{ padding: '2px 6px', fontSize: '0.8rem', width: 'auto', border: '1px solid var(--border-color)' }}
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Progress bar */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)' }}>Project Completion</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#34d399' }}>{stableProgress(selectedProject)}%</span>
+              {/* Completion Progress Slider */}
+              <div style={{ background: 'var(--bg-input)', borderRadius: '10px', padding: '14px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Edit Completion Progress</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={getProgressValue(selectedProject)}
+                      onChange={e => handleUpdateProgress(selectedProject.id, e.target.value)}
+                      className="form-input"
+                      style={{ width: '60px', padding: '2px 6px', fontSize: '0.85rem', fontWeight: '900', color: '#34d399', textAlign: 'center' }}
+                    />
+                    <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#34d399' }}>%</span>
+                  </div>
                 </div>
-                <div style={{ height: '10px', background: 'var(--bg-input)', borderRadius: '99px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${stableProgress(selectedProject)}%`, background: 'linear-gradient(90deg, #10b981, #34d399, #818cf8)', borderRadius: '99px' }} />
-                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={getProgressValue(selectedProject)}
+                  onChange={e => handleUpdateProgress(selectedProject.id, e.target.value)}
+                  style={{ width: '100%', cursor: 'pointer', accentColor: '#34d399' }}
+                />
               </div>
 
-              {/* Update status */}
+              {/* Update status buttons */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Project Status:</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -399,6 +518,7 @@ const OngoingProjects = () => {
                     return (
                       <button
                         key={s}
+                        onClick={() => handleUpdateStatus(selectedProject.id, s)}
                         style={{
                           padding: '5px 14px',
                           borderRadius: '20px',

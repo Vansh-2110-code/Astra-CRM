@@ -20,4 +20,19 @@ api.interceptors.request.use((config) => {
   return config;
 }, (error) => Promise.reject(error));
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const isAuthPath = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/signup');
+      if (!isAuthPath && sessionStorage.getItem('astra_token')) {
+        console.warn('Session expired or invalid token. Clearing credentials.');
+        sessionStorage.removeItem('astra_token');
+        sessionStorage.removeItem('astra_user');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

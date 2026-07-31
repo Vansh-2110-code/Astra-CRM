@@ -895,6 +895,14 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const updateDealMutation = useMutation({
+    mutationFn: ({ id, ...dealData }) => api.put(`/deals/${id}`, dealData),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] }),
+    onError: (err, { id, ...dealData }) => {
+      setLocalDeals(prev => prev.map(d => d.id === id ? { ...d, ...dealData } : d));
+    }
+  });
+
   const createQuoteMutation = useMutation({
     mutationFn: (quoteData) => api.post('/quotes', quoteData),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotes', activeTenantId] }),
@@ -916,6 +924,28 @@ export const CRMProvider = ({ children }) => {
         createdDate: new Date().toISOString().split('T')[0],
         ...newOrder
       }, ...prev]);
+    }
+  });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: ({ id, ...orderData }) => api.put(`/orders/${id}`, orderData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', activeTenantId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
+    },
+    onError: (err, { id, ...orderData }) => {
+      setLocalOrders(prev => prev.map(o => o.id === id ? { ...o, ...orderData } : o));
+    }
+  });
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: (id) => api.delete(`/orders/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', activeTenantId] });
+      queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] });
+    },
+    onError: (err, id) => {
+      setLocalOrders(prev => prev.filter(o => o.id !== id));
     }
   });
 
@@ -1074,12 +1104,12 @@ export const CRMProvider = ({ children }) => {
       },
       leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]), updateProduct: handleUpdateProduct, deleteProduct: handleDeleteProduct,
-      deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync,
+      deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync, updateDeal: (id, dealData) => updateDealMutation.mutateAsync({ id, ...dealData }),
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
         const target = resolvedQuotes.find(q => q.id === id);
         if (target) target.status = 'Accepted';
       }, convertQuoteToOrder: (quoteId) => {},
-      orders: resolvedOrders, createOrder: createOrderMutation.mutateAsync,
+      orders: resolvedOrders, createOrder: createOrderMutation.mutateAsync, updateOrder: (id, orderData) => updateOrderMutation.mutateAsync({ id, ...orderData }), deleteOrder: deleteOrderMutation.mutateAsync,
       tickets: resolvedTickets, createTicket: (tData) => {},
       tasks, addTask: (tData) => setTasks(prev => [{ id: `tsk-${Date.now()}`, status: 'Pending', ...tData }, ...prev]), toggleTaskStatus: (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status: t.status === 'Completed' ? 'Pending' : 'Completed' } : t)),
       campaigns, addCampaign: (cData) => setCampaigns(prev => [{ id: `cmp-${Date.now()}`, openRatePercent: 45.0, clickRatePercent: 20.0, convertedLeads: 5, estimatedROI: '250%', startDate: new Date().toISOString().split('T')[0], sentCount: 500, status: 'Active', ...cData }, ...prev]),

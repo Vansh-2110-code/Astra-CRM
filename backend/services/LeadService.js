@@ -6,7 +6,7 @@ class LeadService {
   }
 
   async createLead(tenantId, leadData) {
-    const { name, company, email, phone, source, assignedTo, notes, tags, status, score, potentialValue } = leadData;
+    const { name, company, email, phone, source, assignedTo, notes, tags, status, score, potentialValue, projectCategory, projectType } = leadData;
 
     // Check duplicate email warning within the same tenant partition
     if (email) {
@@ -44,14 +44,16 @@ class LeadService {
       tags: tags || [],
       status: status || 'Lead',
       score: Math.min(100, computedScore),
-      potentialValue: val
+      potentialValue: val,
+      projectCategory: projectCategory || (projectType && projectType !== 'One Time' && projectType !== 'Recurring' ? projectType : 'Software Development'),
+      projectType: (projectType === 'One Time' || projectType === 'Recurring') ? projectType : 'One Time'
     });
 
     return lead;
   }
 
   async updateLead(tenantId, id, updateData) {
-    const { status, name, company, email, phone, source, assignedTo, notes, tags, potentialValue } = updateData;
+    const { status, name, company, email, phone, source, assignedTo, notes, tags, potentialValue, projectCategory, projectType } = updateData;
 
     let lead = await LeadRepository.findOne({ where: { id, clientId: tenantId } });
     if (!lead) {
@@ -76,6 +78,8 @@ class LeadService {
     if (notes !== undefined) updates.notes = notes;
     if (tags !== undefined) updates.tags = tags;
     if (potentialValue !== undefined) updates.potentialValue = parseFloat(potentialValue);
+    if (projectCategory !== undefined) updates.projectCategory = projectCategory;
+    if (projectType !== undefined) updates.projectType = projectType;
 
     await lead.update(updates);
     return lead;

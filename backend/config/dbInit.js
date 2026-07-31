@@ -2,6 +2,92 @@ const sequelize = require('./database');
 const bcrypt = require('bcryptjs');
 const { Tenant, Role, Employee, Lead, Deal, Quote, AuditLog, Order, Ticket, Integration } = require('../models');
 
+async function ensureOrderColumns() {
+  try {
+    const queryInterface = sequelize.getQueryInterface();
+    const tableInfo = await queryInterface.describeTable('orders');
+    const requiredColumns = [
+      { name: 'invoice_number', type: sequelize.Sequelize.STRING },
+      { name: 'invoice_type', type: sequelize.Sequelize.STRING },
+      { name: 'invoice_date', type: sequelize.Sequelize.STRING },
+      { name: 'customer_address', type: sequelize.Sequelize.TEXT },
+      { name: 'customer_state', type: sequelize.Sequelize.STRING },
+      { name: 'customer_gstin', type: sequelize.Sequelize.STRING },
+      { name: 'reverse_charge', type: sequelize.Sequelize.STRING },
+      { name: 'items', type: sequelize.Sequelize.JSON },
+      { name: 'subtotal', type: sequelize.Sequelize.DOUBLE },
+      { name: 'cgst_amount', type: sequelize.Sequelize.DOUBLE },
+      { name: 'sgst_amount', type: sequelize.Sequelize.DOUBLE },
+      { name: 'tax_total', type: sequelize.Sequelize.DOUBLE },
+      { name: 'shipping', type: sequelize.Sequelize.DOUBLE },
+      { name: 'grand_total', type: sequelize.Sequelize.DOUBLE },
+      { name: 'seller_name', type: sequelize.Sequelize.STRING },
+      { name: 'seller_logo', type: sequelize.Sequelize.TEXT },
+      { name: 'seller_address', type: sequelize.Sequelize.TEXT },
+      { name: 'seller_website', type: sequelize.Sequelize.STRING },
+      { name: 'seller_gstin', type: sequelize.Sequelize.STRING },
+      { name: 'bank_name', type: sequelize.Sequelize.STRING },
+      { name: 'bank_account_name', type: sequelize.Sequelize.STRING },
+      { name: 'bank_account_type', type: sequelize.Sequelize.STRING },
+      { name: 'bank_account_number', type: sequelize.Sequelize.STRING },
+      { name: 'bank_ifsc_code', type: sequelize.Sequelize.STRING },
+      { name: 'bank_branch', type: sequelize.Sequelize.STRING },
+      { name: 'deal_id', type: sequelize.Sequelize.STRING },
+      { name: 'payment_status', type: sequelize.Sequelize.STRING },
+      { name: 'paid_amount', type: sequelize.Sequelize.DOUBLE },
+      { name: 'remaining_amount', type: sequelize.Sequelize.DOUBLE },
+      { name: 'past_advance_paid', type: sequelize.Sequelize.DOUBLE },
+      { name: 'past_installments_paid', type: sequelize.Sequelize.DOUBLE },
+      { name: 'total_paid_so_far', type: sequelize.Sequelize.DOUBLE },
+      { name: 'project_contract_value', type: sequelize.Sequelize.DOUBLE },
+      { name: 'remaining_project_revenue', type: sequelize.Sequelize.DOUBLE }
+    ];
+
+    for (const col of requiredColumns) {
+      if (!tableInfo[col.name]) {
+        await queryInterface.addColumn('orders', col.name, { type: col.type, allowNull: true });
+        console.log(`➕ Added missing column '${col.name}' to orders table.`);
+      }
+    }
+  } catch (err) {
+    console.warn('Column sync check note:', err.message);
+  }
+}
+
+async function ensureLeadColumns() {
+  try {
+    const queryInterface = sequelize.getQueryInterface();
+    const tableInfo = await queryInterface.describeTable('leads');
+    if (!tableInfo['project_type']) {
+      await queryInterface.addColumn('leads', 'project_type', { type: sequelize.Sequelize.STRING, defaultValue: 'Software Development' });
+      console.log("➕ Added missing column 'project_type' to leads table.");
+    }
+  } catch (err) {
+    console.warn('Lead column sync check note:', err.message);
+  }
+}
+
+async function ensureDealColumns() {
+  try {
+    const queryInterface = sequelize.getQueryInterface();
+    const tableInfo = await queryInterface.describeTable('deals');
+    if (!tableInfo['project_status']) {
+      await queryInterface.addColumn('deals', 'project_status', { type: sequelize.Sequelize.STRING, defaultValue: 'In Progress' });
+      console.log("➕ Added missing column 'project_status' to deals table.");
+    }
+    if (!tableInfo['project_progress']) {
+      await queryInterface.addColumn('deals', 'project_progress', { type: sequelize.Sequelize.INTEGER, defaultValue: 0 });
+      console.log("➕ Added missing column 'project_progress' to deals table.");
+    }
+    if (!tableInfo['project_deadline']) {
+      await queryInterface.addColumn('deals', 'project_deadline', { type: sequelize.Sequelize.STRING, allowNull: true });
+      console.log("➕ Added missing column 'project_deadline' to deals table.");
+    }
+  } catch (err) {
+    console.warn('Deal column sync check note:', err.message);
+  }
+}
+
 async function seedDatabase() {
   try {
     // 1. Sync all schemas
@@ -10,9 +96,11 @@ async function seedDatabase() {
       await sequelize.sync({ alter: true });
     } catch (alterErr) {
       // alter:true can fail on SQLite with FK constraints — fall back to safe mode (create only)
-      console.warn('⚠️  alter sync failed, using safe create-only sync:', alterErr.message);
       await sequelize.sync({ force: false });
     }
+    await ensureOrderColumns();
+    await ensureLeadColumns();
+    await ensureDealColumns();
     console.log('✅ Database schema synced successfully.');
 
     const defaultPasswordHash = bcrypt.hashSync('admin123', 10);

@@ -31,20 +31,43 @@ const ExecutiveDashboard = () => {
 
   const safeDeals = Array.isArray(deals) ? deals : [];
   const safeLeads = Array.isArray(leads) ? leads : [];
+  const safeOrders = Array.isArray(orders) ? orders : [];
   const safeProducts = Array.isArray(products) ? products : [];
   const safeEmployees = Array.isArray(employees) ? employees : [];
 
   // Metrics Calculations
-  const totalRevenue = safeDeals
-    .filter(d => d && d.stage === 'Won')
-    .reduce((sum, d) => sum + (d.dealValue || d.totalValue || d.value || 0), 0);
+  // 1. Expected Revenue: Total cost of all ongoing projects (won deals)
+  const ongoingProjectsList = safeDeals.filter(d => d && (d.stage === 'Won' || d.stage === 'Closed Won'));
+  const expectedRevenue = ongoingProjectsList.reduce((sum, d) => sum + (d.dealValue || d.totalValue || d.value || 0), 0);
+
+  // 2. Revenue Generated: Total revenue received at this point of time from paid & partial paid invoices
+  const revenueGenerated = safeOrders.reduce((sum, o) => {
+    const totalVal = parseFloat(o.grandTotal || o.totalValue || o.totalAmount || 0);
+    const paidAmt = parseFloat(o.paidAmount);
+    const statusStr = (o.status || '').toLowerCase();
+    const payStatusStr = (o.paymentStatus || '').toLowerCase();
+
+    if (statusStr === 'paid' || statusStr === 'completed' || statusStr === 'shipped' || payStatusStr === 'paid') {
+      return sum + ((!isNaN(paidAmt) && paidAmt > 0) ? paidAmt : totalVal);
+    }
+    if (!isNaN(paidAmt) && paidAmt > 0) {
+      return sum + paidAmt;
+    }
+    if (statusStr.includes('partial') || payStatusStr.includes('partial')) {
+      const remaining = parseFloat(o.remainingAmount);
+      if (!isNaN(remaining) && remaining < totalVal) {
+        return sum + Math.max(0, totalVal - remaining);
+      }
+    }
+    return sum;
+  }, 0);
 
   const pipelineValue = safeDeals
-    .filter(d => d && d.stage !== 'Won' && d.stage !== 'Lost')
+    .filter(d => d && d.stage !== 'Won' && d.stage !== 'Closed Won' && d.stage !== 'Lost')
     .reduce((sum, d) => sum + (d.dealValue || d.totalValue || d.value || 0), 0);
 
-  const totalWonDeals = safeDeals.filter(d => d && d.stage === 'Won').length;
-  const totalClosedDeals = safeDeals.filter(d => d && (d.stage === 'Won' || d.stage === 'Lost')).length;
+  const totalWonDeals = ongoingProjectsList.length;
+  const totalClosedDeals = safeDeals.filter(d => d && (d.stage === 'Won' || d.stage === 'Closed Won' || d.stage === 'Lost')).length;
   const winRatePercent = totalClosedDeals > 0 ? Math.round((totalWonDeals / totalClosedDeals) * 100) : 0;
 
   const totalLeads = safeLeads.length;
@@ -55,7 +78,7 @@ const ExecutiveDashboard = () => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
   const monthlyData = months.map(m => {
     const monthDeals = (deals || []).filter(d => 
-      d.stage === 'Won' && 
+      (d.stage === 'Won' || d.stage === 'Closed Won') && 
       (d.createdDate || d.createdAt) && 
       new Date(d.createdDate || d.createdAt).toLocaleString('default', { month: 'short' }) === m
     );
@@ -107,20 +130,36 @@ const ExecutiveDashboard = () => {
       {/* KPI Cards Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         
-        {/* Total Won Revenue */}
-        <div className="glass-card" style={{ padding: '20px' }}>
+        {/* Expected Revenue Slicer */}
+        <div className="glass-card" style={{ padding: '20px', border: '1px solid rgba(192, 132, 252, 0.3)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>TOTAL REVENUE (WON)</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#c084fc' }}>EXPECTED REVENUE</span>
+            <div style={{ background: 'rgba(192, 132, 252, 0.15)', padding: '8px', borderRadius: '10px' }}>
+              <TrendingUp style={{ width: '20px', height: '20px', color: '#c084fc' }} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-primary)' }}>
+            ${expectedRevenue.toLocaleString()}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#c084fc', marginTop: '6px' }}>
+            Total value of all {ongoingProjectsList.length} ongoing projects
+          </div>
+        </div>
+
+        {/* Revenue Generated Slicer */}
+        <div className="glass-card" style={{ padding: '20px', border: '1px solid rgba(52, 211, 153, 0.3)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#34d399' }}>REVENUE GENERATED</span>
             <div style={{ background: 'rgba(16, 185, 129, 0.15)', padding: '8px', borderRadius: '10px' }}>
               <DollarSign style={{ width: '20px', height: '20px', color: '#34d399' }} />
             </div>
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-primary)' }}>
-            ${totalRevenue.toLocaleString()}
+            ${revenueGenerated.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.75rem', color: '#34d399', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
             <ArrowUpRight style={{ width: '14px', height: '14px' }} />
-            <span>+24.5% vs last month</span>
+            <span>Actual cash received to date</span>
           </div>
         </div>
 

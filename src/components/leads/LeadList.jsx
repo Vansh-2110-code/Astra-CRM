@@ -192,8 +192,19 @@ const LeadList = () => {
                       <span>•</span>
                       <span><Mail style={{ width: '12px', height: '12px', display: 'inline' }} /> {lead.email}</span>
                     </div>
+                    {(lead.projectCategory || (lead.projectType && lead.projectType !== 'One Time' && lead.projectType !== 'Recurring')) && (
+                      <div style={{ fontSize: '0.75rem', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontWeight: '700' }}>
+                        <Tag style={{ width: '12px', height: '12px' }} />
+                        <span>Category: {lead.projectCategory || lead.projectType}</span>
+                        {lead.projectType && (lead.projectType === 'One Time' || lead.projectType === 'Recurring') && (
+                          <span className="badge badge-purple" style={{ fontSize: '0.65rem', marginLeft: '4px' }}>
+                            {lead.projectType}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {lead.productNeeded && (
-                      <div style={{ fontSize: '0.75rem', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontWeight: '700' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontWeight: '700' }}>
                         <Package style={{ width: '12px', height: '12px' }} />
                         <span>Product: {lead.productNeeded}</span>
                       </div>

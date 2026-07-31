@@ -39,6 +39,21 @@ const Deal = sequelize.define('Deal', {
     type: DataTypes.STRING,
     defaultValue: 'pipe-enterprise',
     field: 'pipeline_id'
+  },
+  projectStatus: {
+    type: DataTypes.STRING,
+    field: 'project_status',
+    defaultValue: 'In Progress'
+  },
+  projectProgress: {
+    type: DataTypes.INTEGER,
+    field: 'project_progress',
+    defaultValue: 0
+  },
+  projectDeadline: {
+    type: DataTypes.STRING,
+    field: 'project_deadline',
+    allowNull: true
   }
 }, {
   tableName: 'deals',

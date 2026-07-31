@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
+import { Plus, Check, X } from 'lucide-react';
+
+const DEFAULT_PROJECT_CATEGORIES = [
+  'Software Development',
+  'SaaS CRM Setup',
+  'Digital Marketing',
+  'Hardware Edge Server',
+  'Consulting & Integration',
+  'Custom Project'
+];
 
 const LeadFormModal = ({ onClose }) => {
-  const { addLead, products = [], employees = [], currentUser } = useCRM();
+  const { addLead, employees = [], currentUser } = useCRM();
 
   // Get list of sales reps/employees for the active organization
   const availableReps = employees.length > 0 
@@ -14,18 +24,60 @@ const LeadFormModal = ({ onClose }) => {
     availableReps.unshift(currentUser.name);
   }
 
+  // Load custom project categories from localStorage if present
+  const [projectCategories, setProjectCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('astra_custom_project_categories') || localStorage.getItem('astra_custom_project_types');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return Array.from(new Set([...DEFAULT_PROJECT_CATEGORIES, ...parsed]));
+        }
+      }
+    } catch (err) {
+      console.error('Error loading custom project categories', err);
+    }
+    return DEFAULT_PROJECT_CATEGORIES;
+  });
+
+  const [isAddingCustomCategory, setIsAddingCustomCategory] = useState(false);
+  const [newProjectCategoryInput, setNewProjectCategoryInput] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     company: '',
     email: '',
     phone: '',
     source: 'Website Forms',
+    projectCategory: 'Software Development',
+    projectType: 'One Time', // 'One Time' | 'Recurring'
     productNeeded: '',
     potentialValue: 0,
     assignedTo: availableReps[0] || '',
     notes: '',
     tagsStr: ''
   });
+
+  const handleAddCustomProjectCategory = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = newProjectCategoryInput.trim();
+    if (!trimmed) return;
+
+    if (!projectCategories.includes(trimmed)) {
+      const updated = [...projectCategories, trimmed];
+      setProjectCategories(updated);
+      try {
+        const customOnly = updated.filter(t => !DEFAULT_PROJECT_CATEGORIES.includes(t));
+        localStorage.setItem('astra_custom_project_categories', JSON.stringify(customOnly));
+      } catch (err) {
+        console.error('Error saving custom project categories', err);
+      }
+    }
+
+    setFormData(prev => ({ ...prev, projectCategory: trimmed }));
+    setNewProjectCategoryInput('');
+    setIsAddingCustomCategory(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,6 +89,8 @@ const LeadFormModal = ({ onClose }) => {
       email: formData.email,
       phone: formData.phone || '',
       source: formData.source,
+      projectCategory: formData.projectCategory || 'Software Development',
+      projectType: formData.projectType || 'One Time',
       productNeeded: formData.productNeeded || '',
       potentialValue: parseFloat(formData.potentialValue) || 0,
       assignedTo: formData.assignedTo,
@@ -49,7 +103,7 @@ const LeadFormModal = ({ onClose }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ padding: '28px' }}>
+      <div className="modal-content" style={{ padding: '28px', maxWidth: '650px', width: '100%' }}>
         <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '6px' }}>Capture / Add New Product Lead</h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
           Lead scoring algorithm automatically calculates engagement rank based on source and potential value.
@@ -120,6 +174,109 @@ const LeadFormModal = ({ onClose }) => {
               </select>
             </div>
 
+            {/* NEW Field: Project Type (One Time vs Recurring) */}
+            <div className="form-group">
+              <label className="form-label">Project Type</label>
+              <select
+                value={formData.projectType}
+                onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
+                className="form-select"
+              >
+                <option value="One Time">One Time</option>
+                <option value="Recurring">Recurring</option>
+              </select>
+            </div>
+
+            {/* Renamed Field: Project Category Selector & Builder */}
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Project Category</label>
+                {!isAddingCustomCategory && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCustomCategory(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#60a5fa',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: 0
+                    }}
+                  >
+                    <Plus style={{ width: '14px', height: '14px' }} />
+                    <span>Add Custom Project Category</span>
+                  </button>
+                )}
+              </div>
+
+              {isAddingCustomCategory ? (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="e.g. AI & ML Solutions, Mobile App, Cloud Ops..."
+                    value={newProjectCategoryInput}
+                    onChange={(e) => setNewProjectCategoryInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomProjectCategory();
+                      } else if (e.key === 'Escape') {
+                        setIsAddingCustomCategory(false);
+                      }
+                    }}
+                    className="form-input"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomProjectCategory}
+                    className="btn gradient-btn-primary"
+                    style={{ padding: '8px 14px', fontSize: '0.85rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Check style={{ width: '14px', height: '14px' }} />
+                    <span>Save</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingCustomCategory(false);
+                      setNewProjectCategoryInput('');
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <X style={{ width: '14px', height: '14px' }} />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              ) : (
+                <select
+                  value={formData.projectCategory}
+                  onChange={(e) => {
+                    if (e.target.value === '__ADD_NEW__') {
+                      setIsAddingCustomCategory(true);
+                    } else {
+                      setFormData({ ...formData, projectCategory: e.target.value });
+                    }
+                  }}
+                  className="form-select"
+                >
+                  {projectCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: 'bold', color: '#60a5fa' }}>
+                    + Add Custom Project Category...
+                  </option>
+                </select>
+              )}
+            </div>
+
             <div className="form-group">
               <label className="form-label">Product Needed / Interested</label>
               <input
@@ -166,7 +323,7 @@ const LeadFormModal = ({ onClose }) => {
 
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginTop: '16px' }}>
             <label className="form-label">Requirement & Activity Notes</label>
             <textarea
               rows="3"

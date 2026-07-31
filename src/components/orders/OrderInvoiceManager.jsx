@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCRM } from '../../context/CRMContext';
-import { ShoppingBag, Truck, FileCheck, Printer, Plus, Trash2, X, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingBag, Truck, Printer, Plus, Trash2, X, Eye } from 'lucide-react';
 
 // Indian Number System Converter (Lakhs/Crores)
 const numberToWords = (num) => {
@@ -61,7 +61,12 @@ const OrderInvoiceManager = () => {
   const { orders, createOrder } = useCRM();
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showSellerDetails, setShowSellerDetails] = useState(false); // Collapsible section control
+
+  // Template & Theme Customization State
+  const [selectedTemplate, setSelectedTemplate] = useState('modern'); // 'modern' | 'creative' | 'classic' | 'compact'
+  const [primaryColor, setPrimaryColor] = useState('#2563eb'); // Default primary accent color
+  const [creatorTab, setCreatorTab] = useState('edit'); // 'edit' | 'preview'
+  const [sampleModalTemplate, setSampleModalTemplate] = useState(null); // null | 'modern' | 'creative' | 'classic' | 'compact'
 
   // Form State
   const [invoiceType, setInvoiceType] = useState('Tax Invoice');
@@ -80,21 +85,21 @@ const OrderInvoiceManager = () => {
   const [reverseCharge, setReverseCharge] = useState('N');
   const [shipping, setShipping] = useState(0);
   const [items, setItems] = useState([
-    { description: '', hsnCode: '99831', unitPrice: 0, qty: 1 }
+    { description: '', hsnCode: '', unitPrice: 0, qty: 1 }
   ]);
 
-  // Seller & Bank Account Custom Details
-  const [sellerName, setSellerName] = useState('Sanna Innovations');
+  // Seller & Bank Account Custom Details (Default Empty)
+  const [sellerName, setSellerName] = useState('');
   const [sellerLogo, setSellerLogo] = useState('');
-  const [sellerAddress, setSellerAddress] = useState('#1230, 1st Main, M.C. Layout, Vijayanagar, Bangalore - 560040');
-  const [sellerWebsite, setSellerWebsite] = useState('www.sannainnovations.com');
-  const [sellerGstin, setSellerGstin] = useState('29BNJPS7776J1ZW / BNJPS7776J');
-  const [bankName, setBankName] = useState('Kotak Bank');
-  const [bankAccountName, setBankAccountName] = useState('Sanna Innovations');
-  const [bankAccountType, setBankAccountType] = useState('Current Account');
-  const [bankAccountNumber, setBankAccountNumber] = useState('6450725722');
-  const [bankIfscCode, setBankIfscCode] = useState('KKBK0008035');
-  const [bankBranch, setBankBranch] = useState('Basaveshwaranagar, Bangalore');
+  const [sellerAddress, setSellerAddress] = useState('');
+  const [sellerWebsite, setSellerWebsite] = useState('');
+  const [sellerGstin, setSellerGstin] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
+  const [bankAccountType, setBankAccountType] = useState('');
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [bankIfscCode, setBankIfscCode] = useState('');
+  const [bankBranch, setBankBranch] = useState('');
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -125,6 +130,45 @@ const OrderInvoiceManager = () => {
       return item;
     });
     setItems(updated);
+  };
+
+  const handleClearAllFields = () => {
+    setSellerName('');
+    setSellerLogo('');
+    setSellerAddress('');
+    setSellerWebsite('');
+    setSellerGstin('');
+    setBankName('');
+    setBankAccountName('');
+    setBankAccountType('');
+    setBankAccountNumber('');
+    setBankIfscCode('');
+    setBankBranch('');
+    setCustomerName('');
+    setCustomerAddress('');
+    setCustomerState('');
+    setCustomerGstin('');
+    setReverseCharge('N');
+    setShipping(0);
+    setItems([{ description: '', hsnCode: '', unitPrice: 0, qty: 1 }]);
+  };
+
+  const handleLoadSampleData = () => {
+    setSellerName('Vertex Systems & Innovations');
+    setSellerAddress('#402 Apex Tech Park, Indiranagar, Bangalore - 560038');
+    setSellerWebsite('www.vertexsystems.io');
+    setSellerGstin('29ABCDE1234F1Z5');
+    setBankName('HDFC Bank');
+    setBankAccountName('Vertex Systems & Innovations');
+    setBankAccountType('Current Account');
+    setBankAccountNumber('987654321012');
+    setBankIfscCode('HDFC0001234');
+    setBankBranch('Indiranagar Branch, Bangalore');
+    setCustomerName('Acumen Global Solutions');
+    setCustomerAddress('78 Cyber Heights, Outer Ring Road, Bangalore');
+    setCustomerState('Karnataka');
+    setCustomerGstin('29XYZAB5678C1Z2');
+    setItems([{ description: 'Cloud Infrastructure & Enterprise SaaS License', hsnCode: '99831', unitPrice: 75000, qty: 1 }]);
   };
 
   // Live total calculations
@@ -253,8 +297,10 @@ const OrderInvoiceManager = () => {
       customerName: order.customerName,
       customerAddress: order.customerAddress || 'Basavanapura Main Rd, opposite Krishna Theatre, Nisarga Layout, Krishnarajapuram, Bengaluru, Karnataka 560036',
       customerState: order.customerState || 'Karnataka',
-      customerGstin: order.customerGstin || (isTax ? '29AAZFG6023C1Z6' : ''),
+      customerGstin: order.customerGstin || (isTax ? '29XYZAB5678C1Z2' : ''),
       reverseCharge: order.reverseCharge || 'N',
+      template: order.template || selectedTemplate || 'modern',
+      primaryColor: order.primaryColor || primaryColor || '#2563eb',
       items: (order.items && order.items.length > 0) ? order.items : [
         {
           description: 'Astra CRM Enterprise SaaS Software License Suite',
@@ -276,23 +322,631 @@ const OrderInvoiceManager = () => {
       taxTotal: taxTotal,
       shipping: order.shipping || 0,
       grandTotal: totalVal,
-      sellerName: order.sellerName || 'Sanna Innovations',
-      sellerLogo: order.sellerLogo || null,
-      sellerAddress: order.sellerAddress || '#1230, 1st Main, M.C. Layout, Vijayanagar, Bangalore - 560040',
-      sellerWebsite: order.sellerWebsite || 'www.sannainnovations.com',
-      sellerGstin: order.sellerGstin || '29BNJPS7776J1ZW / BNJPS7776J',
-      bankName: order.bankName || 'Kotak Bank',
-      bankAccountName: order.bankAccountName || 'Sanna Innovations',
-      bankAccountType: order.bankAccountType || 'Current Account',
-      bankAccountNumber: order.bankAccountNumber || '6450725722',
-      bankIfscCode: order.bankIfscCode || 'KKBK0008035',
-      bankBranch: order.bankBranch || 'Basaveshwaranagar, Bangalore'
+      sellerName: order.sellerName !== undefined ? order.sellerName : sellerName,
+      sellerLogo: order.sellerLogo !== undefined ? order.sellerLogo : sellerLogo,
+      sellerAddress: order.sellerAddress !== undefined ? order.sellerAddress : sellerAddress,
+      sellerWebsite: order.sellerWebsite !== undefined ? order.sellerWebsite : sellerWebsite,
+      sellerGstin: order.sellerGstin !== undefined ? order.sellerGstin : sellerGstin,
+      bankName: order.bankName !== undefined ? order.bankName : bankName,
+      bankAccountName: order.bankAccountName !== undefined ? order.bankAccountName : bankAccountName,
+      bankAccountType: order.bankAccountType !== undefined ? order.bankAccountType : bankAccountType,
+      bankAccountNumber: order.bankAccountNumber !== undefined ? order.bankAccountNumber : bankAccountNumber,
+      bankIfscCode: order.bankIfscCode !== undefined ? order.bankIfscCode : bankIfscCode,
+      bankBranch: order.bankBranch !== undefined ? order.bankBranch : bankBranch
     };
   };
 
   const formatCurrency = (val) => `₹${(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const activeInvoice = selectedInvoice ? normalizeOrderToInvoice(selectedInvoice) : null;
+
+  // Preset Colors List
+  const PRESET_COLORS = [
+    { name: 'Tech Blue', hex: '#2563eb' },
+    { name: 'Crimson Red', hex: '#b91c1c' },
+    { name: 'Emerald Green', hex: '#059669' },
+    { name: 'Royal Purple', hex: '#7c3aed' },
+    { name: 'Amber Gold', hex: '#d97706' },
+    { name: 'Slate Charcoal', hex: '#1e293b' },
+  ];
+
+  // Templates Metadata
+  const TEMPLATES = [
+    { id: 'modern', label: '1. Modern Corporate', icon: '💻' },
+    { id: 'creative', label: '2. Creative Agency', icon: '🎨' },
+    { id: 'classic', label: '3. Classic GST Grid', icon: '🏢' },
+    { id: 'compact', label: '4. Executive Compact', icon: '💼' }
+  ];
+
+  // Helper Theme Bar
+  const renderThemeBar = () => (
+    <div className="no-print" style={{
+      background: 'rgba(15, 23, 42, 0.7)',
+      border: '1px solid rgba(255, 255, 255, 0.15)',
+      borderRadius: '12px',
+      padding: '14px 18px',
+      marginBottom: '20px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        
+        {/* Template Selector Tabs */}
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>
+            Choose Built-in Invoice Template:
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {TEMPLATES.map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTemplate(t.id)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    border: selectedTemplate === t.id ? `2px solid ${primaryColor}` : '1px solid var(--border-color)',
+                    background: selectedTemplate === t.id ? `${primaryColor}25` : 'var(--card-bg-light)',
+                    color: selectedTemplate === t.id ? '#ffffff' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>{t.icon}</span>
+                  <span>{t.label}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTemplate(t.id);
+                    setSampleModalTemplate(t.id);
+                  }}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '0.7rem',
+                    fontWeight: '700',
+                    background: 'rgba(96, 165, 250, 0.15)',
+                    color: '#60a5fa',
+                    border: '1px solid rgba(96, 165, 250, 0.3)',
+                    cursor: 'pointer'
+                  }}
+                  title={`Preview sample invoice for ${t.label}`}
+                >
+                  👁️ Sample
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Color Theme Selector */}
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>
+            Template Color Theme:
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {PRESET_COLORS.map(c => (
+              <button
+                key={c.hex}
+                type="button"
+                onClick={() => setPrimaryColor(c.hex)}
+                title={c.name}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: c.hex,
+                  border: primaryColor === c.hex ? '3px solid #ffffff' : '2px solid transparent',
+                  cursor: 'pointer',
+                  transform: primaryColor === c.hex ? 'scale(1.2)' : 'scale(1)'
+                }}
+              />
+            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px' }}>
+              <input
+                type="color"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  background: 'none'
+                }}
+                title="Custom Color Picker"
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Custom</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+
+  // Template Renderers
+  const renderTemplateContent = (inv) => {
+    const themeColor = primaryColor || inv.primaryColor || '#2563eb';
+    const tmpl = selectedTemplate || inv.template || 'modern';
+
+    if (tmpl === 'modern') {
+      return (
+        <div style={{ border: `1px solid ${themeColor}40`, borderRadius: '10px', overflow: 'hidden', background: '#fff', color: '#1e293b' }}>
+          <div style={{ height: '6px', background: themeColor }} />
+          <div style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+              <div>
+                {inv.sellerLogo ? (
+                  <img src={inv.sellerLogo} style={{ maxHeight: '60px', maxWidth: '160px', objectFit: 'contain', marginBottom: '8px' }} alt="Logo" />
+                ) : (
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: themeColor, margin: 0 }}>
+                    {inv.sellerName || 'COMPANY NAME'}
+                  </h2>
+                )}
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', maxWidth: '280px', lineHeight: 1.4 }}>
+                  <div>{inv.sellerAddress}</div>
+                  {inv.sellerGstin && <div>GSTIN: {inv.sellerGstin}</div>}
+                  {inv.sellerWebsite && <div style={{ color: themeColor }}>{inv.sellerWebsite}</div>}
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  background: themeColor,
+                  color: '#ffffff',
+                  fontWeight: '800',
+                  fontSize: '0.85rem',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px'
+                }}>
+                  {inv.invoiceType || 'TAX INVOICE'}
+                </span>
+                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#334155' }}>
+                  No: <span style={{ color: themeColor }}>{inv.invoiceNumber}</span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                  Date: {inv.invoiceDate}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: '#f8fafc', border: `1px solid ${themeColor}20`, borderRadius: '8px', padding: '16px', marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: themeColor, textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Billed To (Customer):
+                </div>
+                <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a' }}>
+                  {inv.customerName || 'Customer Name'}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '4px', whiteSpace: 'pre-wrap' }}>
+                  {inv.customerAddress}
+                </div>
+                {inv.customerState && <div style={{ fontSize: '0.8rem', color: '#475569' }}>State: {inv.customerState}</div>}
+                {inv.customerGstin && <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginTop: '2px' }}>GSTIN: {inv.customerGstin}</div>}
+              </div>
+
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: themeColor, textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Payment Details:
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div>Status: <strong>{inv.paymentStatus || 'Paid'}</strong></div>
+                  <div>Reverse Charge: <strong>{inv.reverseCharge || 'N'}</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', marginBottom: '24px' }}>
+              <thead>
+                <tr style={{ background: themeColor, color: '#ffffff', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px', borderTopLeftRadius: '6px' }}>#</th>
+                  <th style={{ padding: '10px 12px' }}>Item Description</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>HSN/SAC</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Price (₹)</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Qty</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'right', borderTopRightRadius: '6px' }}>Total (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(inv.items || []).map((item, idx) => {
+                  const lineNet = item.netAmount || ((item.unitPrice || 0) * (item.qty || 1));
+                  return (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                      <td style={{ padding: '10px 12px', color: '#64748b' }}>{idx + 1}</td>
+                      <td style={{ padding: '10px 12px', fontWeight: '700', color: '#1e293b' }}>{item.description || item.productName}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', color: '#64748b' }}>{item.hsnCode || '-'}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>{(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>{item.qty || 1}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700' }}>{lineNet.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '240px', fontSize: '0.8rem' }}>
+                <div style={{ fontWeight: '800', color: themeColor, marginBottom: '4px' }}>Bank Account & Remittance:</div>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px', color: '#475569', lineHeight: 1.5 }}>
+                  <div>Bank: <strong>{inv.bankName}</strong></div>
+                  <div>Account Holder: <strong>{inv.bankAccountName}</strong></div>
+                  <div>Account No: <strong>{inv.bankAccountNumber}</strong></div>
+                  <div>IFSC Code: <strong>{inv.bankIfscCode}</strong></div>
+                  {inv.bankBranch && <div>Branch: {inv.bankBranch}</div>}
+                </div>
+              </div>
+
+              <div style={{ width: '280px', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #cbd5e1' }}>
+                  <span>Subtotal:</span>
+                  <strong style={{ color: '#1e293b' }}>{formatCurrency(inv.subtotal)}</strong>
+                </div>
+                {inv.invoiceType === 'Tax Invoice' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #cbd5e1', color: '#475569' }}>
+                    <span>CGST (9%) + SGST (9%):</span>
+                    <strong>{formatCurrency(inv.taxTotal)}</strong>
+                  </div>
+                )}
+                {inv.shipping > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #cbd5e1' }}>
+                    <span>Shipping:</span>
+                    <strong>{formatCurrency(inv.shipping)}</strong>
+                  </div>
+                )}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  background: themeColor,
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  marginTop: '8px',
+                  fontWeight: '900',
+                  fontSize: '1.05rem'
+                }}>
+                  <span>Grand Total:</span>
+                  <span>{formatCurrency(inv.grandTotal)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '30px', borderTop: '1px solid #e2e8f0', paddingTop: '16px', fontSize: '0.75rem', color: '#64748b' }}>
+              <div>
+                <div>Amount In Words: <strong>{numberToWords(inv.grandTotal)}</strong></div>
+                <div style={{ fontStyle: 'italic', marginTop: '4px' }}>Thank you for your business!</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: '800', color: themeColor, marginBottom: '20px' }}>
+                  For {inv.sellerName || 'Seller Company'}
+                </div>
+                <div style={{ borderTop: '1px solid #cbd5e1', width: '140px', margin: '0 auto', paddingTop: '4px', fontWeight: '700', color: '#334155' }}>
+                  Authorised Signatory
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    if (tmpl === 'creative') {
+      return (
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', background: '#fff', color: '#1e293b' }}>
+          <div style={{ background: themeColor, color: '#ffffff', padding: '28px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              {inv.sellerLogo ? (
+                <img src={inv.sellerLogo} style={{ maxHeight: '60px', maxWidth: '180px', objectFit: 'contain', background: '#fff', padding: '6px', borderRadius: '8px' }} alt="Logo" />
+              ) : (
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0, letterSpacing: '0.5px' }}>
+                  {inv.sellerName || 'YOUR COMPANY'}
+                </h1>
+              )}
+              <div style={{ fontSize: '0.8rem', opacity: 0.9, marginTop: '6px' }}>{inv.sellerAddress}</div>
+            </div>
+
+            <div style={{ textAlign: 'right' }}>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '2px' }}>
+                INVOICE
+              </h2>
+              <div style={{ fontSize: '0.95rem', fontWeight: '700', marginTop: '4px' }}>
+                #{inv.invoiceNumber}
+              </div>
+              <div style={{ fontSize: '0.8rem', marginTop: '2px', opacity: 0.85 }}>
+                Date: {inv.invoiceDate}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: '28px 32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
+              <div style={{ background: `${themeColor}08`, border: `1px solid ${themeColor}30`, borderRadius: '10px', padding: '18px' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: themeColor, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  CLIENT INFORMATION
+                </div>
+                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
+                  {inv.customerName || 'Customer Name'}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '4px', whiteSpace: 'pre-wrap' }}>
+                  {inv.customerAddress}
+                </div>
+                {inv.customerGstin && <div style={{ fontSize: '0.8rem', fontWeight: '700', color: themeColor, marginTop: '6px' }}>GSTIN: {inv.customerGstin}</div>}
+              </div>
+
+              <div style={{ background: `${themeColor}08`, border: `1px solid ${themeColor}30`, borderRadius: '10px', padding: '18px' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: themeColor, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                  PAYMENT DETAILS
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: '800', color: inv.paymentStatus?.includes('Paid') ? '#10b981' : '#f59e0b' }}>
+                  Status: {inv.paymentStatus || 'Pending'}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '6px', lineHeight: 1.5 }}>
+                  <div>Bank: <strong>{inv.bankName}</strong></div>
+                  <div>Account: <strong>{inv.bankAccountNumber}</strong></div>
+                  <div>IFSC: <strong>{inv.bankIfscCode}</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', marginBottom: '28px' }}>
+              <thead>
+                <tr style={{ background: themeColor, color: '#ffffff' }}>
+                  <th style={{ padding: '12px 14px', textAlign: 'center', width: '5%', borderTopLeftRadius: '8px' }}>#</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', width: '45%' }}>Description</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'center', width: '15%' }}>HSN</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'right', width: '15%' }}>Price</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'center', width: '8%' }}>Qty</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'right', width: '17%', borderTopRightRadius: '8px' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(inv.items || []).map((item, idx) => {
+                  const lineNet = item.netAmount || ((item.unitPrice || 0) * (item.qty || 1));
+                  return (
+                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', color: '#94a3b8' }}>{idx + 1}</td>
+                      <td style={{ padding: '12px 14px', fontWeight: '700', color: '#1e293b' }}>{item.description || item.productName}</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center', color: '#64748b' }}>{item.hsnCode || '-'}</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'right' }}>{(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>{item.qty || 1}</td>
+                      <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '800', color: themeColor }}>{lineNet.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: themeColor, color: '#ffffff', padding: '20px 24px', borderRadius: '12px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Payable Amount</div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.9, fontStyle: 'italic', marginTop: '2px' }}>{numberToWords(inv.grandTotal)}</div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: '900' }}>
+                {formatCurrency(inv.grandTotal)}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (tmpl === 'compact') {
+      return (
+        <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '28px', background: '#fff', color: '#1e293b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `2px solid ${themeColor}`, paddingBottom: '16px', marginBottom: '20px' }}>
+            <div>
+              {inv.sellerLogo ? (
+                <img src={inv.sellerLogo} style={{ maxHeight: '50px', maxWidth: '140px', objectFit: 'contain', marginBottom: '6px' }} alt="Logo" />
+              ) : (
+                <div style={{ fontSize: '1.4rem', fontWeight: '900', color: themeColor }}>{inv.sellerName || 'COMPANY NAME'}</div>
+              )}
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{inv.sellerAddress}</div>
+            </div>
+
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: '800', color: themeColor, textTransform: 'uppercase' }}>INVOICE</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: '700' }}>#{inv.invoiceNumber}</div>
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Date: {inv.invoiceDate}</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', background: '#f8fafc', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '0.78rem' }}>
+            <div>
+              <span style={{ color: '#64748b' }}>Billed To:</span>
+              <div style={{ fontWeight: '800', color: '#0f172a' }}>{inv.customerName}</div>
+            </div>
+            <div>
+              <span style={{ color: '#64748b' }}>GSTIN:</span>
+              <div style={{ fontWeight: '700' }}>{inv.customerGstin || 'N/A'}</div>
+            </div>
+            <div>
+              <span style={{ color: '#64748b' }}>Payment Status:</span>
+              <div style={{ fontWeight: '800', color: inv.paymentStatus?.includes('Paid') ? '#10b981' : '#f59e0b' }}>{inv.paymentStatus}</div>
+            </div>
+          </div>
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', marginBottom: '20px' }}>
+            <thead>
+              <tr style={{ borderBottom: `2px solid ${themeColor}`, color: themeColor, textAlign: 'left', fontWeight: '800' }}>
+                <th style={{ padding: '8px' }}>Description</th>
+                <th style={{ padding: '8px', textAlign: 'center' }}>HSN</th>
+                <th style={{ padding: '8px', textAlign: 'right' }}>Price</th>
+                <th style={{ padding: '8px', textAlign: 'center' }}>Qty</th>
+                <th style={{ padding: '8px', textAlign: 'right' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(inv.items || []).map((item, idx) => (
+                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '8px', fontWeight: '600' }}>{item.description || item.productName}</td>
+                  <td style={{ padding: '8px', textAlign: 'center', color: '#64748b' }}>{item.hsnCode || '-'}</td>
+                  <td style={{ padding: '8px', textAlign: 'right' }}>{(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+                  <td style={{ padding: '8px', textAlign: 'center' }}>{item.qty || 1}</td>
+                  <td style={{ padding: '8px', textAlign: 'right', fontWeight: '700' }}>{((item.unitPrice || 0) * (item.qty || 1)).toLocaleString('en-IN')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+              Bank: <strong>{inv.bankName}</strong> | A/C: <strong>{inv.bankAccountNumber}</strong> | IFSC: <strong>{inv.bankIfscCode}</strong>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: '900', color: themeColor }}>
+                Total: {formatCurrency(inv.grandTotal)}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default 'classic' template (Official GST Grid)
+    return (
+      <div style={{ border: '1px solid #9ca3af', padding: '16px', background: '#ffffff', color: '#1f2937' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '140px', border: '1px solid #e5e7eb', padding: '8px', borderRadius: '4px', background: '#fafafa' }}>
+              {inv.sellerLogo ? (
+                <img src={inv.sellerLogo} style={{ maxHeight: '55px', maxWidth: '120px', objectFit: 'contain', marginBottom: '4px' }} alt="Logo" />
+              ) : (
+                <>
+                  <div style={{ background: themeColor, width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', border: '2px solid #eab308', alignSelf: 'center' }}>
+                    <span style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: '800', lineHeight: '44px', textAlign: 'center' }}>
+                      {inv.sellerName?.charAt(0) || 'S'}
+                    </span>
+                  </div>
+                  <div style={{ color: themeColor, fontWeight: '900', fontSize: '1.1rem', letterSpacing: '1px', marginTop: '4px', lineHeight: 1, textTransform: 'uppercase', textAlign: 'center' }}>
+                    {inv.sellerName?.split(' ')[0] || 'COMPANY'}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div style={{ width: '320px', border: '1px solid #9ca3af', borderCollapse: 'collapse' }}>
+            <div style={{ background: themeColor, color: 'white', fontWeight: '800', textAlign: 'center', padding: '6px', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              {inv.invoiceType}
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+              <tbody>
+                <tr style={{ borderTop: '1px solid #9ca3af' }}>
+                  <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af', width: '40%' }}>Invoice Date</td>
+                  <td style={{ padding: '6px' }}>{inv.invoiceDate}</td>
+                </tr>
+                <tr style={{ borderTop: '1px solid #9ca3af' }}>
+                  <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af' }}>Invoice No</td>
+                  <td style={{ padding: '6px', fontWeight: '700' }}>{inv.invoiceNumber}</td>
+                </tr>
+                <tr style={{ borderTop: '1px solid #9ca3af' }}>
+                  <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af' }}>GSTIN/PAN</td>
+                  <td style={{ padding: '6px', fontSize: '0.7rem' }}>{inv.sellerGstin}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style={{ border: '1px solid #9ca3af', marginBottom: '20px' }}>
+          <div style={{ background: themeColor, color: 'white', fontWeight: '700', padding: '6px', fontSize: '0.8rem' }}>
+            Customer:
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+            <tbody>
+              <tr>
+                <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af', width: '150px' }}>Name:</td>
+                <td style={{ padding: '6px', fontWeight: '700' }}>{inv.customerName}</td>
+              </tr>
+              <tr style={{ borderTop: '1px solid #9ca3af' }}>
+                <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af' }}>Address:</td>
+                <td style={{ padding: '6px', fontSize: '0.75rem', whiteSpace: 'pre-wrap' }}>{inv.customerAddress}</td>
+              </tr>
+              <tr style={{ borderTop: '1px solid #9ca3af' }}>
+                <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af' }}>State:</td>
+                <td style={{ padding: '6px' }}>{inv.customerState}</td>
+              </tr>
+              {inv.customerGstin && (
+                <tr style={{ borderTop: '1px solid #9ca3af' }}>
+                  <td style={{ padding: '6px', fontWeight: '700', borderRight: '1px solid #9ca3af' }}>GSTIN:</td>
+                  <td style={{ padding: '6px', fontWeight: '700' }}>{inv.customerGstin}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #9ca3af', fontSize: '0.75rem', marginBottom: '20px' }}>
+          <thead>
+            <tr style={{ background: themeColor, color: 'white' }}>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '5%' }}>Sl No</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '35%' }}>Description of Goods / Services</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '10%' }}>HSN / SAC</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '12%' }}>Rate (₹)</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '8%' }}>Qty</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '15%' }}>Taxable Amt (₹)</th>
+              <th style={{ border: '1px solid #9ca3af', padding: '6px', width: '15%' }}>Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(inv.items || []).map((item, idx) => {
+              const lineNet = item.netAmount || ((item.unitPrice || 0) * (item.qty || 1));
+              return (
+                <tr key={idx} style={{ textAlign: 'center' }}>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px' }}>{idx + 1}</td>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px', textAlign: 'left', fontWeight: '700' }}>{item.description || item.productName}</td>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px' }}>{item.hsnCode || '-'}</td>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px', textAlign: 'right' }}>{(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px' }}>{item.qty || 1}</td>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px', textAlign: 'right' }}>{lineNet.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                  <td style={{ border: '1px solid #9ca3af', padding: '6px', textAlign: 'right', fontWeight: '700' }}>{lineNet.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
+          <div style={{ flex: 1, border: '1px solid #9ca3af', padding: '8px', fontSize: '0.72rem' }}>
+            <div style={{ fontWeight: '800', color: themeColor, marginBottom: '4px' }}>Bank Details:</div>
+            <div>Bank: <strong>{inv.bankName}</strong></div>
+            <div>A/C Name: <strong>{inv.bankAccountName}</strong></div>
+            <div>A/C No: <strong>{inv.bankAccountNumber}</strong></div>
+            <div>IFSC Code: <strong>{inv.bankIfscCode}</strong></div>
+          </div>
+
+          <div style={{ width: '280px', border: '1px solid #9ca3af', fontSize: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', borderBottom: '1px solid #9ca3af' }}>
+              <span>Subtotal:</span>
+              <strong>{formatCurrency(inv.subtotal)}</strong>
+            </div>
+            {inv.invoiceType === 'Tax Invoice' && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', borderBottom: '1px solid #9ca3af' }}>
+                <span>CGST (9%) + SGST (9%):</span>
+                <strong>{formatCurrency(inv.taxTotal)}</strong>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 6px', background: themeColor, color: 'white', fontWeight: '900', fontSize: '0.9rem' }}>
+              <span>Grand Total:</span>
+              <span>{formatCurrency(inv.grandTotal)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -445,28 +1099,146 @@ const OrderInvoiceManager = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateInvoice} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                           {/* Seller & Bank Details (Fully visible by default) */}
-              <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255, 255, 255, 0.02)' }}>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: '800', color: '#c084fc', margin: '0 0 4px 0' }}>🏢 Seller Company Details</h4>
+            {/* Template & Color Selector Theme Bar */}
+            {renderThemeBar()}
+
+            {/* Form vs Live Preview Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setCreatorTab('edit')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: '700',
+                  border: creatorTab === 'edit' ? '1px solid #60a5fa' : '1px solid transparent',
+                  background: creatorTab === 'edit' ? 'rgba(96, 165, 250, 0.2)' : 'transparent',
+                  color: creatorTab === 'edit' ? '#60a5fa' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>📝 Edit Form Details</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreatorTab('preview')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: '700',
+                  border: creatorTab === 'preview' ? '1px solid #34d399' : '1px solid transparent',
+                  background: creatorTab === 'preview' ? 'rgba(52, 211, 153, 0.2)' : 'transparent',
+                  color: creatorTab === 'preview' ? '#34d399' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>👁️ Live Template Preview</span>
+              </button>
+            </div>
+
+            {/* Quick Actions Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.03)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '16px' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                Form Fill Controls:
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleClearAllFields}
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.75rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Trash2 style={{ width: '12px', height: '12px' }} /> Clear All Fields (Empty)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLoadSampleData}
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.75rem', color: '#60a5fa', borderColor: 'rgba(96, 165, 250, 0.4)' }}
+                >
+                  Load Demo Sample Data
+                </button>
+              </div>
+            </div>
+
+            {creatorTab === 'preview' ? (
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Live Template Preview (Real-time update from form)</span>
+                  <span className="badge badge-purple" style={{ textTransform: 'uppercase' }}>
+                    {selectedTemplate} Template • {primaryColor} Accent
+                  </span>
+                </div>
+                {renderTemplateContent({
+                  sellerName: sellerName.trim() || 'Vertex Systems & Innovations',
+                  sellerLogo: sellerLogo || null,
+                  sellerAddress: sellerAddress.trim() || '#402 Apex Tech Park, Indiranagar, Bangalore - 560038',
+                  sellerWebsite: sellerWebsite.trim() || 'www.vertexsystems.io',
+                  sellerGstin: sellerGstin.trim() || '29ABCDE1234F1Z5',
+                  bankName: bankName.trim() || 'HDFC Bank',
+                  bankAccountName: bankAccountName.trim() || 'Vertex Systems & Innovations',
+                  bankAccountType: bankAccountType.trim() || 'Current Account',
+                  bankAccountNumber: bankAccountNumber.trim() || '987654321012',
+                  bankIfscCode: bankIfscCode.trim() || 'HDFC0001234',
+                  bankBranch: bankBranch.trim() || 'Indiranagar Branch, Bangalore',
+                  customerName: customerName.trim() || 'Acumen Global Solutions Ltd',
+                  customerAddress: customerAddress.trim() || '78 Cyber Heights, Outer Ring Road, Bangalore',
+                  customerState: customerState.trim() || 'Karnataka',
+                  customerGstin: customerGstin.trim() || '29XYZAB5678C1Z2',
+                  invoiceNumber: invoiceNumber || 'SI/2026/July/444',
+                  invoiceType: invoiceType || 'Tax Invoice',
+                  invoiceDate: invoiceDate || new Date().toISOString().split('T')[0],
+                  paymentStatus: 'Paid',
+                  reverseCharge: reverseCharge || 'N',
+                  template: selectedTemplate,
+                  primaryColor,
+                  items: items.length > 0 && items[0].description.trim() ? items.map(item => ({
+                    ...item,
+                    netAmount: (parseFloat(item.unitPrice) || 0) * (parseInt(item.qty) || 1)
+                  })) : [
+                    { description: 'Cloud Infrastructure & Enterprise SaaS License', hsnCode: '99831', unitPrice: 75000, qty: 1, netAmount: 75000 }
+                  ],
+                  subtotal: totals.subtotal > 0 ? totals.subtotal : 75000,
+                  cgstAmount: totals.cgstAmount > 0 ? totals.cgstAmount : 6750,
+                  sgstAmount: totals.sgstAmount > 0 ? totals.sgstAmount : 6750,
+                  taxTotal: totals.taxTotal > 0 ? totals.taxTotal : 13500,
+                  shipping: shipping || 0,
+                  grandTotal: totals.grandTotal > 0 ? totals.grandTotal : 88500
+                })}
+              </div>
+            ) : (
+              <form onSubmit={handleCreateInvoice} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 
-                {/* Company info row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Name (Seller)</label>
-                    <input 
-                      type="text" 
-                      value={sellerName} 
-                      onChange={(e) => setSellerName(e.target.value)}
-                      className="form-input" 
-                      required 
-                    />
-                  </div>
+                {/* Seller & Bank Details (Fully visible by default) */}
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255, 255, 255, 0.02)' }}>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: '800', color: '#c084fc', margin: '0 0 4px 0' }}>🏢 Seller Company Details</h4>
+                  
+                  {/* Company info row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Name (Seller)</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Vertex Systems Ltd"
+                        value={sellerName} 
+                        onChange={(e) => setSellerName(e.target.value)}
+                        className="form-input" 
+                      />
+                    </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company GSTIN/PAN</label>
                     <input 
                       type="text" 
+                      placeholder="e.g. 29ABCDE1234F1Z5"
                       value={sellerGstin} 
                       onChange={(e) => setSellerGstin(e.target.value)}
                       className="form-input" 
@@ -477,6 +1249,7 @@ const OrderInvoiceManager = () => {
                     <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Website URL</label>
                     <input 
                       type="text" 
+                      placeholder="e.g. www.vertexsystems.io"
                       value={sellerWebsite} 
                       onChange={(e) => setSellerWebsite(e.target.value)}
                       className="form-input" 
@@ -506,6 +1279,7 @@ const OrderInvoiceManager = () => {
                   <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Company Full Address</label>
                   <input 
                     type="text" 
+                    placeholder="e.g. #402 Apex Tech Park, Indiranagar, Bangalore"
                     value={sellerAddress} 
                     onChange={(e) => setSellerAddress(e.target.value)}
                     className="form-input" 
@@ -521,6 +1295,7 @@ const OrderInvoiceManager = () => {
                       <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Bank Name</label>
                       <input 
                         type="text" 
+                        placeholder="e.g. HDFC Bank"
                         value={bankName} 
                         onChange={(e) => setBankName(e.target.value)}
                         className="form-input" 
@@ -532,6 +1307,7 @@ const OrderInvoiceManager = () => {
                       <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Holder Name</label>
                       <input 
                         type="text" 
+                        placeholder="e.g. Vertex Systems Ltd"
                         value={bankAccountName} 
                         onChange={(e) => setBankAccountName(e.target.value)}
                         className="form-input" 
@@ -543,6 +1319,7 @@ const OrderInvoiceManager = () => {
                       <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Type</label>
                       <input 
                         type="text" 
+                        placeholder="e.g. Current Account"
                         value={bankAccountType} 
                         onChange={(e) => setBankAccountType(e.target.value)}
                         className="form-input" 
@@ -554,6 +1331,7 @@ const OrderInvoiceManager = () => {
                       <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Account Number</label>
                       <input 
                         type="text" 
+                        placeholder="e.g. 987654321012"
                         value={bankAccountNumber} 
                         onChange={(e) => setBankAccountNumber(e.target.value)}
                         className="form-input" 
@@ -565,6 +1343,7 @@ const OrderInvoiceManager = () => {
                       <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>IFSC Code</label>
                       <input 
                         type="text" 
+                        placeholder="e.g. HDFC0001234"
                         value={bankIfscCode} 
                         onChange={(e) => setBankIfscCode(e.target.value)}
                         className="form-input" 
@@ -576,6 +1355,7 @@ const OrderInvoiceManager = () => {
                       <label style={{ fontSize: '0.7rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Branch Name</label>
                       <input 
                         type="text" 
+                        placeholder="e.g. Indiranagar Branch, Bangalore"
                         value={bankBranch} 
                         onChange={(e) => setBankBranch(e.target.value)}
                         className="form-input" 
@@ -628,7 +1408,7 @@ const OrderInvoiceManager = () => {
                   <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer Name</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Thanu Tools Solutions"
+                    placeholder="e.g. Acumen Global Solutions"
                     value={customerName} 
                     onChange={(e) => setCustomerName(e.target.value)}
                     className="form-input" 
@@ -652,7 +1432,7 @@ const OrderInvoiceManager = () => {
                     <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Customer GSTIN</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. 29AAZFG6023C1Z6"
+                      placeholder="e.g. 29XYZAB5678C1Z2"
                       value={customerGstin} 
                       onChange={(e) => setCustomerGstin(e.target.value)}
                       className="form-input" 
@@ -810,6 +1590,7 @@ const OrderInvoiceManager = () => {
               </div>
 
             </form>
+            )}
           </div>
         </div>
       )}
@@ -1070,6 +1851,74 @@ const OrderInvoiceManager = () => {
               </div>
 
             </div>
+          </div>
+        </div>
+      )}
+      {/* Template Sample Modal */}
+      {sampleModalTemplate && (
+        <div className="modal-overlay">
+          <div className="modal-content print-area" style={{ 
+            padding: '24px', 
+            maxWidth: '900px', 
+            width: '95%', 
+            background: '#ffffff', 
+            color: '#1f2937', 
+            borderRadius: '10px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#1e293b', margin: 0 }}>
+                  👁️ Sample Invoice Preview: <span style={{ color: primaryColor, textTransform: 'capitalize' }}>{sampleModalTemplate} Template</span>
+                </h3>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  This is a realistic sample demonstration of how your invoice will look using the {sampleModalTemplate} layout.
+                </div>
+              </div>
+              <button 
+                onClick={() => setSampleModalTemplate(null)} 
+                className="btn btn-secondary" 
+                style={{ color: '#ef4444' }}
+              >
+                Close Sample
+              </button>
+            </div>
+
+            {renderTemplateContent({
+              sellerName: 'Vertex Systems & Innovations',
+              sellerLogo: null,
+              sellerAddress: '#402 Apex Tech Park, Indiranagar, Bangalore - 560038',
+              sellerWebsite: 'www.vertexsystems.io',
+              sellerGstin: '29ABCDE1234F1Z5',
+              bankName: 'HDFC Bank',
+              bankAccountName: 'Vertex Systems & Innovations',
+              bankAccountType: 'Current Account',
+              bankAccountNumber: '987654321012',
+              bankIfscCode: 'HDFC0001234',
+              bankBranch: 'Indiranagar Branch, Bangalore',
+              customerName: 'Acumen Global Solutions Ltd',
+              customerAddress: '78 Cyber Heights, Outer Ring Road, Bangalore - 560103',
+              customerState: 'Karnataka',
+              customerGstin: '29XYZAB5678C1Z2',
+              invoiceNumber: 'SI/2026/July/444',
+              invoiceType: 'Tax Invoice',
+              invoiceDate: new Date().toISOString().split('T')[0],
+              paymentStatus: 'Paid',
+              reverseCharge: 'N',
+              template: sampleModalTemplate,
+              primaryColor: primaryColor || '#2563eb',
+              items: [
+                { description: 'Cloud Infrastructure & Enterprise SaaS License', hsnCode: '99831', unitPrice: 75000, qty: 1, netAmount: 75000 },
+                { description: 'Custom Integration & Maintenance Support', hsnCode: '99832', unitPrice: 25000, qty: 1, netAmount: 25000 }
+              ],
+              subtotal: 100000,
+              cgstAmount: 9000,
+              sgstAmount: 9000,
+              taxTotal: 18000,
+              shipping: 0,
+              grandTotal: 118000
+            })}
           </div>
         </div>
       )}

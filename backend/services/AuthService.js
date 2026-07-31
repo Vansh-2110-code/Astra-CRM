@@ -29,7 +29,7 @@ class AuthService {
         role: role ? role.name : 'Sales Executive'
       },
       jwtSecret,
-      { expiresIn: '15m' }
+      { expiresIn: '24h' }
     );
 
     const refreshToken = jwt.sign(

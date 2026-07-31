@@ -18,14 +18,18 @@ import {
   Trash2
 } from 'lucide-react';
 
+import PricingPlansModal from '../billing/PricingPlansModal';
+
 const SecurityDashboard = () => {
-  const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation, deleteEmployee } = useCRM();
+  const { securityConfig, setSecurityConfig, auditLogs, logAudit, roles, activeRole, updateRolePermissions, employees, createEmployee, updateEmployeeRoleAndDesignation, deleteEmployee, activeTenant } = useCRM();
   // Check if active user has security admin permission to toggle permissions
   const isSecurityAdmin = (activeRole?.permissions || []).includes('security_admin') || activeRole?.id === 'role-admin';
   const [activeSubTab, setActiveSubTab] = useState(isSecurityAdmin ? 'audit' : 'employees');
   const [logFilterSeverity, setLogFilterSeverity] = useState('ALL');
   const [logSearchQuery, setLogSearchQuery] = useState('');
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [seatLimitAlert, setSeatLimitAlert] = useState(false);
   const [newEmp, setNewEmp] = useState({ name: '', email: '', designation: '', roleId: 'role-exec', baseSalary: 50000 });
 
   const handleCreateEmployeeSubmit = async (e) => {
@@ -486,7 +490,7 @@ const SecurityDashboard = () => {
       {/* SUB-TAB 4: EMPLOYEE DIRECTORY */}
       {activeSubTab === 'employees' && (
         <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Corporate Designation & Role Directory</h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -496,15 +500,50 @@ const SecurityDashboard = () => {
                 }
               </p>
             </div>
-            {isSecurityAdmin && (
-              <button
-                onClick={() => setShowAddEmpModal(true)}
-                className="btn gradient-btn-primary"
-                style={{ padding: '10px 18px', fontSize: '0.8rem' }}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {/* Seat Meter Badge */}
+              <div
+                onClick={() => { setSeatLimitAlert(false); setShowPricingModal(true); }}
+                style={{
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  cursor: 'pointer',
+                  fontSize: '0.78rem',
+                  fontWeight: '700',
+                  color: '#818cf8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                title="View Subscription Pricing & Seat Upgrades"
               >
-                + Add New Employee
-              </button>
-            )}
+                <Users style={{ width: '14px', height: '14px' }} />
+                <span>Seats: <strong style={{ color: '#fff' }}>{(employees || []).length} / {activeTenant?.maxSeats || 15}</strong> Used</span>
+                <span style={{ color: '#34d399', fontSize: '0.7rem' }}>⚡ Upgrade</span>
+              </div>
+
+              {isSecurityAdmin && (
+                <button
+                  onClick={() => {
+                    const maxSeats = activeTenant?.maxSeats || 15;
+                    const currentCount = (employees || []).length;
+                    if (currentCount >= maxSeats) {
+                      setSeatLimitAlert(true);
+                      setShowPricingModal(true);
+                    } else {
+                      setShowAddEmpModal(true);
+                    }
+                  }}
+                  className="btn gradient-btn-primary"
+                  style={{ padding: '10px 18px', fontSize: '0.8rem' }}
+                >
+                  + Add New Employee
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="custom-table-container">
@@ -617,6 +656,13 @@ const SecurityDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Pricing Plans & Razorpay Modal */}
+      <PricingPlansModal
+        isOpen={showPricingModal}
+        onClose={() => { setShowPricingModal(false); setSeatLimitAlert(false); }}
+        seatLimitAlert={seatLimitAlert}
+      />
 
     </div>
   );

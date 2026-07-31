@@ -53,8 +53,11 @@ const MENU_ITEMS = [
   { id: 'salary', label: 'Salary & Payroll', icon: Wallet, category: 'HR' },
 ];
 
+import PricingPlansModal from '../billing/PricingPlansModal';
+
 const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
   const { activeTenant, activeRole, theme, setTheme, logout, currentUser } = useCRM();
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   return (
     <>
@@ -118,16 +121,22 @@ const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
       </div>
 
       {/* Active Tenant Badge */}
-      <div style={{
-        margin: '14px 16px 6px 16px',
-        padding: '10px 14px',
-        background: 'rgba(99, 102, 241, 0.08)',
-        border: '1px solid rgba(99, 102, 241, 0.2)',
-        borderRadius: '10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px'
-      }}>
+      <div
+        onClick={() => setShowPricingModal(true)}
+        style={{
+          margin: '14px 16px 6px 16px',
+          padding: '10px 14px',
+          background: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease'
+        }}
+        title="Click to view Subscription Pricing & Seat Licensing"
+      >
         <img
           src={activeTenant?.logo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80'}
           alt={activeTenant?.name || 'Organization'}
@@ -138,10 +147,12 @@ const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
             {activeTenant?.name || 'Organization'}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            Plan: <span style={{ color: '#34d399', fontWeight: '600' }}>{activeTenant?.plan || 'Enterprise'}</span>
+            Plan: <span style={{ color: '#34d399', fontWeight: '700' }}>{activeTenant?.plan || 'Business Starter'}</span> ⚡
           </div>
         </div>
       </div>
+
+      <PricingPlansModal isOpen={showPricingModal} onClose={() => setShowPricingModal(false)} />
 
       {/* Navigation Links */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>

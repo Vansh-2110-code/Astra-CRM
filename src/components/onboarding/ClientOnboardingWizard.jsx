@@ -168,40 +168,40 @@ const ClientOnboardingWizard = () => {
         
         <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #8b5cf6' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Starter Plan</h4>
-            <span className="badge badge-purple">$99/mo</span>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Business Starter</h4>
+            <span className="badge badge-purple">₹3,000/mo · 15 Seats</span>
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-            For growing product sales teams up to 10 seats with standard pipeline tools.
+            Includes up to 15 active seats with core CRM pipeline & lead capture tools.
           </p>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Includes: Leads, Pipeline Kanban, Quotes, Standard Security.
+            Includes: Leads, Pipeline Kanban, Quotes, Tasks, AI Sales Assistant.
           </div>
         </div>
 
         <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #10b981' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Professional Plan</h4>
-            <span className="badge badge-emerald">$299/mo</span>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Business Enterprise</h4>
+            <span className="badge badge-emerald">₹5,000/mo · 25 Seats</span>
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-            For mid-size sales ops up to 25 seats with quotation PDF builder & stock sync.
+            Up to 25 seats with full invoicing, projects, payroll, and audit vault.
           </p>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Includes: Orders, Support Desk, WhatsApp Integration, GDPR Compliance.
+            Includes: Orders & Invoicing, Ongoing Projects, Payroll, Security Audit Vault.
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #3b82f6' }}>
+        <div className="glass-card" style={{ padding: '20px', borderTop: '4px solid #fbbf24' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Enterprise Plan</h4>
-            <span className="badge badge-blue">$799/mo</span>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: '800' }}>Enterprise Scale</h4>
+            <span className="badge badge-amber">&gt; 25 Seats · Contact Us</span>
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-            Unlimited seats, custom domain, audit logs, 2FA enforcement & SOC2 compliance.
+            Custom seat allocation above 25 seats with dedicated SLA & manager.
           </p>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Includes: Multi-tenant isolation, Dedicated Account Manager, 24/7 SLA.
+            Includes: Unlimited Flexible Seats, Custom SLA, On-premise/Isolated Cloud.
           </div>
         </div>
 

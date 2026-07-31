@@ -35,8 +35,22 @@ class TenantService {
     if (!tenant) {
       throw new Error("Tenant not found.");
     }
-    const maxSeats = plan === 'Starter' ? 10 : plan === 'Professional' ? 25 : 50;
-    await tenant.update({ plan, maxSeats });
+    let maxSeats = 15;
+    let normalizedPlan = 'Business Starter (15 Seats)';
+
+    const planStr = (typeof plan === 'string' ? plan : plan?.plan || '').toLowerCase();
+    if (planStr.includes('25') || planStr.includes('enterprise') || planStr.includes('pro')) {
+      maxSeats = 25;
+      normalizedPlan = 'Business Enterprise (25 Seats)';
+    } else if (planStr.includes('15') || planStr.includes('starter')) {
+      maxSeats = 15;
+      normalizedPlan = 'Business Starter (15 Seats)';
+    } else if (typeof plan === 'object' && plan.maxSeats) {
+      maxSeats = plan.maxSeats;
+      normalizedPlan = plan.plan || 'Custom Plan';
+    }
+
+    await tenant.update({ plan: normalizedPlan, maxSeats });
     return tenant;
   }
 }

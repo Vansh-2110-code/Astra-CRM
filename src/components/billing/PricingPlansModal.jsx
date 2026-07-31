@@ -41,7 +41,7 @@ const PricingPlansModal = ({ isOpen, onClose, seatLimitAlert = false }) => {
       // Check if Razorpay SDK script is available on window
       if (typeof window.Razorpay === 'function') {
         const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_mockKeyId2026',
+          key: (import.meta.env && import.meta.env.VITE_RAZORPAY_KEY_ID) || process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_mockKeyId2026',
           amount: order.amount || amount * 100,
           currency: order.currency || 'INR',
           name: 'ASTRA CRM Enterprise',

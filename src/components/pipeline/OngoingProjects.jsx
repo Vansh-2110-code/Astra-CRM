@@ -17,7 +17,8 @@ import {
   Award,
   Layers,
   ArrowUpRight,
-  Target
+  Target,
+  Trash2
 } from 'lucide-react';
 
 const STATUS_OPTIONS = ['All', 'In Progress', 'On Hold', 'Delivered'];
@@ -35,6 +36,7 @@ const getStatusStyle = (status) => {
     case 'On Hold':
       return { bg: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)' };
     case 'Delivered':
+    case 'Completed':
       return { bg: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: 'rgba(16, 185, 129, 0.3)' };
     default:
       return { bg: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: 'rgba(99, 102, 241, 0.3)' };
@@ -59,7 +61,7 @@ const getProgressValue = (deal) => {
 };
 
 const OngoingProjects = () => {
-  const { deals = [], orders = [], updateDeal, currentUser } = useCRM();
+  const { deals = [], orders = [], updateDeal, deleteDeal, currentUser } = useCRM();
 
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -126,9 +128,30 @@ const OngoingProjects = () => {
     }
   };
 
-  // All Closed Won deals auto-populate here
+  const handleDeleteProject = async (dealId, e) => {
+    if (e) e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+      try {
+        if (deleteDeal) {
+          await deleteDeal(dealId);
+          if (selectedProject && (selectedProject.id === dealId || `deal-${selectedProject.id}` === dealId)) {
+            setSelectedProject(null);
+          }
+        }
+      } catch (err) {
+        console.error("Error deleting project:", err);
+        alert("Failed to delete project: " + (err.response?.data?.error || err.message));
+      }
+    }
+  };
+
+  // All Closed Won deals auto-populate here (excluding Delivered/Completed projects)
   const wonDeals = useMemo(() => {
-    return deals.filter(d => d.stage === 'Won' || d.stage === 'Closed Won');
+    return deals.filter(d => {
+      const isWon = d.stage === 'Won' || d.stage === 'Closed Won';
+      const status = getProjectStatus(d);
+      return isWon && status !== 'Delivered' && status !== 'Completed';
+    });
   }, [deals]);
 
   // Helper to compute revenue received per deal from orders
@@ -382,7 +405,7 @@ const OngoingProjects = () => {
                   </div>
                 </div>
 
-                {/* Footer: status + open */}
+                {/* Footer: status + open + delete */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <select
                     value={status}
@@ -404,9 +427,31 @@ const OngoingProjects = () => {
                     <option value="On Hold" style={{ background: '#1e293b', color: '#fff' }}>On Hold</option>
                     <option value="Delivered" style={{ background: '#1e293b', color: '#fff' }}>Delivered</option>
                   </select>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    View Details <ChevronRight style={{ width: '12px', height: '12px' }} />
-                  </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteProject(deal.id, e)}
+                      style={{
+                        background: 'rgba(244, 63, 94, 0.12)',
+                        border: '1px solid rgba(244, 63, 94, 0.3)',
+                        color: '#f43f5e',
+                        borderRadius: '8px',
+                        padding: '4px 8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Delete Project"
+                    >
+                      <Trash2 style={{ width: '13px', height: '13px' }} />
+                    </button>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      View Details <ChevronRight style={{ width: '12px', height: '12px' }} />
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -559,6 +604,27 @@ const OngoingProjects = () => {
                   {selectedProject.lastActivity}
                 </div>
               )}
+
+              {/* Danger Zone / Delete Button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteProject(selectedProject.id)}
+                  className="btn"
+                  style={{
+                    background: 'rgba(244, 63, 94, 0.15)',
+                    color: '#f43f5e',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: '700'
+                  }}
+                >
+                  <Trash2 style={{ width: '14px', height: '14px' }} /> Delete Project
+                </button>
+              </div>
             </div>
           </div>
         </div>

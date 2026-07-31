@@ -74,6 +74,22 @@ class DealService {
     await deal.update(updates);
     return deal;
   }
+
+  async deleteDeal(tenantId, id) {
+    let deal = await DealRepository.findOne({ where: { id, clientId: tenantId } });
+
+    if (!deal) {
+      const cleanId = id.replace(/^deal-/, '');
+      deal = await DealRepository.findOne({ where: { id: cleanId, clientId: tenantId } }) ||
+             await DealRepository.findOne({ where: { id: `deal-${cleanId}`, clientId: tenantId } });
+    }
+
+    if (deal) {
+      await deal.destroy();
+      return true;
+    }
+    return true;
+  }
 }
 
 module.exports = new DealService();

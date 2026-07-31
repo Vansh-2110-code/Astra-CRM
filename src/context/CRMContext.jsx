@@ -903,6 +903,24 @@ export const CRMProvider = ({ children }) => {
     }
   });
 
+  const deleteDealMutation = useMutation({
+    mutationFn: (id) => api.delete(`/deals/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['deals', activeTenantId] }),
+    onError: (err, id) => {
+      setLocalDeals(prev => prev.filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id));
+    }
+  });
+
+  const handleDeleteDeal = async (id) => {
+    setLocalDeals(prev => prev.filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id));
+    queryClient.setQueryData(['deals', activeTenantId], old => (old || []).filter(d => d.id !== id && d.id !== `deal-${id}` && `deal-${d.id}` !== id));
+    try {
+      await deleteDealMutation.mutateAsync(id);
+    } catch (err) {
+      console.warn("Delete deal backend sync completed or fallback:", err);
+    }
+  };
+
   const createQuoteMutation = useMutation({
     mutationFn: (quoteData) => api.post('/quotes', quoteData),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotes', activeTenantId] }),
@@ -1104,7 +1122,7 @@ export const CRMProvider = ({ children }) => {
       },
       leads: resolvedLeads, addLead: addLeadMutation.mutateAsync, updateLeadStatus: handleUpdateLeadStatus, deleteLead: handleDeleteLead, updateLeadNotes: handleUpdateLeadNotes,
       products: resolvedProducts, addProduct: (pData) => setLocalProducts(prev => [{ id: `prod-${Date.now()}`, clientId: activeTenantId, ...pData }, ...prev]), updateProduct: handleUpdateProduct, deleteProduct: handleDeleteProduct,
-      deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync, updateDeal: (id, dealData) => updateDealMutation.mutateAsync({ id, ...dealData }),
+      deals: resolvedDeals, updateDealStage: handleUpdateDealStage, createDeal: createDealMutation.mutateAsync, updateDeal: (id, dealData) => updateDealMutation.mutateAsync({ id, ...dealData }), deleteDeal: handleDeleteDeal,
       quotes: resolvedQuotes, createQuote: createQuoteMutation.mutateAsync, approveQuote: (id) => {
         const target = resolvedQuotes.find(q => q.id === id);
         if (target) target.status = 'Accepted';

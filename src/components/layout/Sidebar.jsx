@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Sparkles,
   Wallet,
+  CheckCircle2,
   BarChart3,
   FolderKanban
 } from 'lucide-react';
@@ -42,6 +43,7 @@ const MENU_ITEMS = [
   { id: 'activities', label: 'Activities & Call Logs', icon: Clock, category: 'Operations' },
   { id: 'tasks', label: 'Tasks & Follow-ups', icon: CheckSquare, category: 'Operations' },
   { id: 'ongoing-projects', label: 'Ongoing Projects', icon: FolderKanban, category: 'Operations' },
+  { id: 'completed-projects', label: 'Completed Projects', icon: CheckCircle2, category: 'Operations' },
   { id: 'support', label: 'Customer Support Desk', icon: Headphones, category: 'Operations' },
   { id: 'customers', label: 'Customer Accounts & Login', icon: Users, category: 'Operations' },
   
@@ -174,6 +176,7 @@ const Sidebar = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
             case 'activities':
             case 'tasks':
             case 'ongoing-projects':
+            case 'completed-projects':
               return perms.includes('log_activities') || perms.includes('view_leads') || perms.includes('view_hr') || perms.includes('view_ops') || perms.includes('view_sales');
             case 'support':
               return perms.includes('manage_tickets') || perms.includes('view_ops');

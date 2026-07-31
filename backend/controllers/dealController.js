@@ -43,3 +43,18 @@ exports.updateDeal = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.deleteDeal = async (req, res) => {
+  try {
+    const tenantId = req.tenant.id;
+    const { id } = req.params;
+    await DealService.deleteDeal(tenantId, id);
+
+    await invalidateCache(tenantId, 'deals');
+    emitToTenant(tenantId, 'deal_deleted', { id });
+
+    res.json({ message: 'Deal deleted successfully', id });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

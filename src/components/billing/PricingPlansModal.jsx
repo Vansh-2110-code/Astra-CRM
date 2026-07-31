@@ -46,7 +46,7 @@ const PricingPlansModal = ({ isOpen, onClose, seatLimitAlert = false }) => {
           currency: order.currency || 'INR',
           name: 'ASTRA CRM Enterprise',
           description: `Subscription Upgrade to ${planName} (${maxSeats} Seats)`,
-          order_id: order.id.startsWith('order_mock_') ? undefined : order.id,
+          order_id: (order && order.id && !order.id.startsWith('order_mock_')) ? order.id : undefined,
           handler: async (response) => {
             try {
               await verifyRazorpayPayment({
